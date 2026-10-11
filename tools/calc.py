@@ -40,21 +40,30 @@ for mu in (0.20, 0.25, 0.35):
 P(f"- Reibwinkel PETG/HDPE ca. 11-19 Grad -> Neigung {V['ALPHA']:.0f} Grad hat Reserve")
 
 # ------------------------------------------------------------------ Rotor-Takt
-P("\n## Takt Wendetrommel")
+P("\n## Takt (Modell der Firmware-Ablaufsteuerung)")
 acc = g*(math.sin(a) - 0.25*math.cos(a))
-t_slide = math.sqrt(2*((V["S_STOP"]-0.4)-V["S_X2_FRONT"])/1000/acc)
-def move_time(deg, vmax=1440.0, amax=20000.0):   # Grad, Grad/s, Grad/s^2 (Trapez)
-    t_acc = vmax/amax; d_acc = vmax**2/amax
-    return 2*math.sqrt(deg/amax) if deg < d_acc else 2*t_acc + (deg - d_acc)/vmax
-t_settle, t_meas, t_drop = 0.06, 0.02, 0.16   # t_drop: Flasche faellt 103 mm bis aus dem Schacht
-T_EARLY = 0.12   # Sperre A oeffnet 120 ms bevor der Rotor die Ladestellung erreicht
-t_slide_eff = max(t_slide - T_EARLY, 0.0)
-t_stop  = t_slide_eff + t_settle + t_meas + move_time(62) + t_drop + move_time(62)
-t_entry = t_slide_eff + t_settle + t_meas + move_time(58) + 0.10 + move_time(60) + t_drop + move_time(118)
-t_mean = (t_stop + t_entry)/2
-P(f"- Einrutschen {t_slide*1000:.0f} ms (davon {T_EARLY*1000:.0f} ms ueberlappend mit Rueckdrehung), Beruhigen {t_settle*1000:.0f} ms, Messen {t_meas*1000:.0f} ms")
-P(f"- Boden am Anschlag (-62 Grad): Zyklus {t_stop*1000:.0f} ms;  Hals am Anschlag (+118 Grad mit Halt bei +58): {t_entry*1000:.0f} ms")
-P(f"- Mittel {t_mean*1000:.0f} ms  ->  max. ca. {60/t_mean:.0f} Flaschen/min (Ziel 30-60)")
+d_slide = (V["S_STOP"] - 0.4) - V["S_X2_FRONT"]
+t_slide = math.sqrt(2*d_slide/1000/acc)                 # Sperre -> Anschlag
+t_q     = math.sqrt(2*0.1025/acc)                       # Warteschlange rutscht 102,5 mm nach
+def move_time(deg, vmax=1440.0, amax=20000.0):
+    d_acc = vmax**2/amax
+    return 2*math.sqrt(deg/amax) if deg < d_acc else 2*vmax/amax + (deg - d_acc)/vmax
+# Firmware-Standardwerte (firmware/unscrambler/config.h)
+T = dict(valve=0.03, settle=0.06, measure=0.02, hold=0.10, drop=0.16, early=0.12, gate=0.06, slide2=0.38, clamp=0.06)
+esc_ready = T["gate"] + T["slide2"] + T["clamp"]        # ab Ankunft (Praesenz) bis Vereinzelung bereit
+def cycle(neck):
+    dump = move_time(58) + T["hold"] + move_time(60) if neck else move_time(62)
+    ret  = move_time(118 if neck else 62)
+    rot_gate = T["settle"] + T["measure"] + dump + T["drop"] + max(ret - T["early"], 0)   # Rotor erlaubt Sperre
+    gate_at  = max(rot_gate, esc_ready)
+    return gate_at + T["valve"] + t_slide, rot_gate, esc_ready
+c_stop, r1, e1 = cycle(False); c_neck, r2, e2 = cycle(True)
+c_mean = (c_stop + c_neck)/2
+P(f"- Einrutschen Sperre->Anschlag {t_slide*1000:.0f} ms (mu 0,25), Nachrutschen Warteschlange {t_q*1000:.0f} ms (Firmware: 380 ms)")
+P(f"- Boden am Anschlag: Rotor gibt Sperre frei nach {r1*1000:.0f} ms, Vereinzelung bereit nach {e1*1000:.0f} ms -> Takt {c_stop*1000:.0f} ms")
+P(f"- Hals am Anschlag : Rotor gibt Sperre frei nach {r2*1000:.0f} ms, Vereinzelung bereit nach {e2*1000:.0f} ms -> Takt {c_neck*1000:.0f} ms")
+P(f"- Mittel (50/50) {c_mean*1000:.0f} ms  ->  ca. {60/c_mean:.0f} Flaschen/min Dauerleistung (Ziel 30-60)")
+P(f"- Begrenzend ist die Vereinzelung (Nachrutschen). Mehr Leistung: Rinne steiler (ALPHA) oder t_slide2 per Inbetriebnahme kuerzen.")
 
 # ------------------------------------------------------------------ Fall
 h_fall = (V["ROT_Z"] - 59) - V["BELT_Z"]

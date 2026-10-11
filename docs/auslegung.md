@@ -12,10 +12,12 @@ Erzeugt mit `python3 tools/calc.py --write`. Annahmen siehe Quelltext.
 - mu=0.35: a=1.57 m/s2, Sperre->Anschlag 139 mm in 420 ms, Nachrutschen 102,5 mm in 361 ms
 - Reibwinkel PETG/HDPE ca. 11-19 Grad -> Neigung 28 Grad hat Reserve
 
-## Takt Wendetrommel
-- Einrutschen 338 ms (davon 120 ms ueberlappend mit Rueckdrehung), Beruhigen 60 ms, Messen 20 ms
-- Boden am Anschlag (-62 Grad): Zyklus 680 ms;  Hals am Anschlag (+118 Grad mit Halt bei +58): 929 ms
-- Mittel 805 ms  ->  max. ca. 75 Flaschen/min (Ziel 30-60)
+## Takt (Modell der Firmware-Ablaufsteuerung)
+- Einrutschen Sperre->Anschlag 338 ms (mu 0,25), Nachrutschen Warteschlange 290 ms (Firmware: 380 ms)
+- Boden am Anschlag: Rotor gibt Sperre frei nach 351 ms, Vereinzelung bereit nach 500 ms -> Takt 868 ms
+- Hals am Anschlag : Rotor gibt Sperre frei nach 591 ms, Vereinzelung bereit nach 500 ms -> Takt 959 ms
+- Mittel (50/50) 913 ms  ->  ca. 66 Flaschen/min Dauerleistung (Ziel 30-60)
+- Begrenzend ist die Vereinzelung (Nachrutschen). Mehr Leistung: Rinne steiler (ALPHA) oder t_slide2 per Inbetriebnahme kuerzen.
 
 ## Fall in den Schacht
 - Fallhoehe max. 113 mm, Auftreffgeschwindigkeit 1.49 m/s, Fallzeit 152 ms

@@ -5,10 +5,13 @@
 
 /* [Welle] */
 welle_d        = 8;     // Wellendurchmesser
-bohrung_spiel  = -0.2;  // negativ = Presssitz (TPU dehnt sich), 0 = Nennmaß
-d_flat         = true;  // Abflachung in der Bohrung (für Welle mit D-Profil)
+bohrung_spiel  = 0.2;   // Klebespalt (Durchmesser): 0.2 = 0.1 mm Spalt je Seite
+d_flat         = true;  // Abflachung in der Bohrung (für Welle mit D-Profil, Formschluss)
 d_flat_tiefe   = 0.5;   // Tiefe der Abflachung (Standard D-Welle 8 mm: 0.5)
-madenschraube  = true;  // Querbohrung + Mutternfalle für M4 Madenschraube
+madenschraube  = false; // Querbohrung + Mutternfalle für M4 Madenschraube (optional zusätzlich)
+kleberillen    = 3;     // Ringnuten in der Bohrung als Kleberreservoir (0 = aus)
+rillen_tiefe   = 0.4;   // radiale Tiefe der Ringnuten
+rillen_breite  = 1.5;
 
 /* [Nabe] */
 nabe_d         = 20;    // Außendurchmesser Nabe
@@ -47,6 +50,10 @@ module bohrung() {
             translate([bohrung_d / 2 - d_flat_tiefe, -bohrung_d, -2])
                 cube([bohrung_d, 2 * bohrung_d, nabe_h + 4]);
     }
+    // Ringnuten als Kleberreservoir, gleichmäßig verteilt
+    if (kleberillen > 0) for (i = [1 : kleberillen])
+        translate([0, 0, i * nabe_h / (kleberillen + 1) - rillen_breite / 2])
+            cylinder(d = bohrung_d + 2 * rillen_tiefe, h = rillen_breite);
     // Einführfase unten
     translate([0, 0, -0.01]) cylinder(d1 = bohrung_d + 1.2, d2 = bohrung_d, h = 0.6);
 }

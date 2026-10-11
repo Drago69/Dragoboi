@@ -1,8 +1,22 @@
 Teil;Anzahl;Material;X mm;Y mm;Z mm;Volumen cm3;Gewicht ca. g (4 Waende, 15% Fuellung);Hinweis
-stufe_M;7;PETG;99.9;240.0;32.0;714.0;266;"liegend auf Rueckseite; 4 Waende, 25% Gyroid"
-stufe_F;6;PETG;99.9;240.0;32.0;715.9;264;liegend auf Rueckseite
-stufe_F0;1;PETG;45.4;240.0;44.0;428.3;169;liegend auf Vorderflaeche
-rinne_trog;1;PETG;142.0;246.0;57.7;1329.1;469;liegend auf Vorderflaeche, Gleitflaechen 0.15 mm Schicht
+haken;10;PETG;30.3;104.0;17.0;29.8;20;flach, 5 Waende, 40% Fuellung (Mitnehmer)
+nabe;1;PETG;66.0;66.0;36.0;94.9;49;Rueckseite unten, 6 Waende, 60% Fuellung
+lagerbock_teller;1;PETG;124.0;80.0;106.0;165.1;117;Flansch unten, 5 Waende, 40% Fuellung
+randring_1;1;PETG;63.3;190.5;46.2;149.9;76;Fuss unten
+randring_2;1;PETG;164.3;165.1;54.9;199.1;99;Fuss unten
+randring_3;1;PETG;196.5;38.8;54.0;176.6;89;Fuss unten
+randring_4;1;PETG;157.9;146.9;54.9;175.8;88;Fuss unten
+randring_5;1;PETG;73.0;164.8;52.1;143.4;72;Fuss unten
+randring_6;1;PETG;82.2;144.4;40.0;215.1;86;Fuss unten
+kantenwinkel_1;4;PETG;62.6;28.0;14.9;9.4;10;Kante unten
+kantenwinkel_2;4;PETG;62.6;28.0;13.2;9.2;10;Kante unten
+bodenauflage;2;PETG;44.7;42.2;26.8;16.4;13;Holmseite unten
+abstreifer;1;PETG;58.0;47.9;102.0;70.1;39;Aussenende unten
+uebergabe;1;PETG;102.4;210.0;62.6;170.3;142;Rinnenlage (Kiel unten), Gleitflaechen 0.15 mm Schicht
+auslauf;1;PETG;58.0;95.8;45.5;87.4;68;Kiel unten
+deckel_auslauf;1;PETG;52.0;95.8;3.0;14.8;19;flach (transparentes PETG empfohlen)
+haubenhalter;4;PETG;14.0;14.0;70.0;9.6;9;stehend
+keil_teller;4;PETG;20.0;64.0;86.1;53.5;33;flach, 60% Fuellung
 rinne_G1;1;PETG;58.0;154.2;45.5;137.3;106;auf Kiel
 rinne_G2;1;PETG;58.0;124.0;45.5;110.0;85;auf Kiel
 deckel_G1;1;PETG;52.0;154.2;3.0;20.6;26;flach (transparentes PETG empfohlen)
@@ -18,15 +32,6 @@ gehaeuse_motorseite;1;PETG;166.2;181.1;32.5;325.9;191;Aussenplatte unten
 gehaeuse_lagerseite;1;PETG;166.2;167.4;32.5;309.4;175;Aussenplatte unten
 motorstutzen;1;PETG;42.3;42.3;16.0;17.5;16;Motorseite unten
 fallschacht;1;PETG;82.5;64.0;107.0;79.7;93;Flansch unten
-nocke;1;PETG;116.0;116.0;8.0;67.1;51;flach, 6 Waende, 50% Fuellung
-rollenhalter;1;PETG;20.0;50.0;32.0;10.4;12;Platte unten
-lagerbock;1;PETG;26.0;62.0;28.0;29.3;23;Lagerachse senkrecht
-motorbock;1;PETG;44.0;71.0;62.0;59.7;54;Getriebeflansch unten
-schlitten_adapter;2;PETG;50.0;60.0;8.0;22.9;19;flach
-hallhalter_hub;1;PETG;31.5;19.0;24.0;10.0;9;
-keil28;6;PETG;20.0;64.0;40.0;25.7;19;flach, 60% Fuellung
-keil15;4;PETG;20.0;64.0;17.3;13.3;11;flach
 sensorhalter_laser;5;PETG schwarz;14.0;32.0;16.0;2.3;3;Grundplatte unten
 sensorhalter_pt;5;PETG schwarz;14.0;32.0;16.0;2.4;3;Grundplatte unten
 e18_halter;1;PETG;40.0;93.0;32.0;40.0;35;auf Steg liegend
-schuerzenwinkel;8;PETG;25.0;25.0;30.0;4.2;5;

@@ -12,7 +12,8 @@
 //        Hals am Anschlag : +58 Grad halten (Hals rutscht aus Nut), dann +118 Grad
 //   5. Flasche faellt Boden voraus in den Fallschacht und steht auf dem Band
 //   6. Rotor zurueck in Ladestellung, Sperre A oeffnet schon waehrend der Rueckfahrt
-//  Stufenfoerderer laeuft, solange die Rinne nicht voll ist; haelt unten an.
+//  Der Hakenteller laeuft, solange die Rinne nicht voll ist (Lichtschranke X4);
+//  blockiert er (kein Hall-Impuls je Tasche), haelt er an und laeuft nach einer Pause neu an.
 // =====================================================================
 #include <Arduino.h>
 #include <Preferences.h>
@@ -93,18 +94,21 @@ static uint32_t moveTimeMs(float deg) {
 }
 
 // ---------------------------------------------------------------------
-// Hubantrieb
+// Tellerantrieb (Hakenteller, Dauerlauf solange die Rinne nicht voll ist)
 // ---------------------------------------------------------------------
-static bool feedRunning = false, feedStopReq = false;
-static uint32_t feedLastEdge = 0;
+static bool feedRunning = false;
+static uint32_t feedLastEdge = 0, feedStallT = 0, feedOkSince = 0;
+static uint8_t feedStalls = 0;
+static uint32_t cntStall = 0;
 static void feedStart() {
   stFeed->setSpeedInHz((uint32_t)(P.feed_rpm / 60.0f * FEED_STEPS_PER_REV));
   stFeed->setAcceleration((int32_t)(P.feed_acc_rps2 * FEED_STEPS_PER_REV));
   stFeed->runForward();
-  feedRunning = true; feedStopReq = false; feedLastEdge = millis();
+  feedRunning = true; feedLastEdge = millis(); feedOkSince = feedLastEdge;
 }
-static void feedStopAtBottom() { if (feedRunning) feedStopReq = true; }
-static void feedStopNow() { stFeed->stopMove(); feedRunning = false; feedStopReq = false; }
+static void feedStopNow() { stFeed->stopMove(); feedRunning = false; }   // Bremsrampe feed_acc
+// erwarteter Abstand der Hall-Impulse (eine Taschenteilung) inkl. Hochlauf
+static uint32_t feedPulseMs() { return (uint32_t)(60000.0f / (max(P.feed_rpm, 3.0f) * TD_POCKETS)); }
 
 // ---------------------------------------------------------------------
 // Zustaende
@@ -112,7 +116,7 @@ static void feedStopNow() { stFeed->stopMove(); feedRunning = false; feedStopReq
 enum Mode { M_FAULT, M_HOMING, M_IDLE, M_RUN, M_STOPPING };
 enum RotState { R_WAIT_READY, R_LOADING, R_MEASURE, R_WIGGLE, R_WAIT_SHAFT, R_DUMP, R_HOLD, R_DROP, R_RETURN };
 enum EscState { E_INIT_RELEASE, E_INIT_CLAMP, E_READY, E_GATE_OPEN, E_CLOSE_GATE, E_RELEASE, E_RECLAMP };
-enum HomeState { H_START, H_LEAVE, H_SEEK_ON, H_SEEK_OFF, H_GOTO, H_FEED, H_DONE };
+enum HomeState { H_START, H_LEAVE, H_SEEK_ON, H_SEEK_OFF, H_GOTO, H_DONE };
 
 static Mode mode = M_HOMING;
 static RotState rs = R_WAIT_READY;
@@ -153,7 +157,7 @@ static void escUpdate(uint32_t now) {
   }
 }
 
-// Referenzfahrt: Rotor auf Hall-Fenster-Mitte, Hubantrieb nach unten
+// Referenzfahrt: Rotor auf Hall-Fenster-Mitte (der Teller braucht keine Referenz)
 static void homingUpdate(uint32_t now) {
   switch (hs) {
     case H_START:
@@ -182,30 +186,28 @@ static void homingUpdate(uint32_t now) {
       } else if (!rotBusy()) fault("Referenz Rotor: Fenster nicht verlassen");
       break;
     case H_GOTO:
-      if (!rotBusy()) { rotMoveTo(0, P.rot_home_v * 2, 4000); hs = H_FEED; hsT = now; }
-      break;
-    case H_FEED:
-      if (rotBusy()) break;
-      if (inHallFeed.active) { if (feedRunning) feedStopNow(); hs = H_DONE; break; }
-      if (!feedRunning) {
-        stFeed->setSpeedInHz((uint32_t)(10.0f / 60.0f * FEED_STEPS_PER_REV));
-        stFeed->setAcceleration((int32_t)(FEED_STEPS_PER_REV)); stFeed->runForward(); feedRunning = true; hsT = now;
-      }
-      if (now - hsT > 15000) fault("Referenz Hubantrieb: Hallsensor nicht gefunden");
+      if (!rotBusy()) { rotMoveTo(0, P.rot_home_v * 2, 4000); hs = H_DONE; }
       break;
     case H_DONE:
+      if (rotBusy()) break;
       mode = M_IDLE; Serial.println("Referenz OK -> BEREIT (Start druecken)"); break;
   }
 }
 
-// Hubantrieb: laeuft solange Rinne nicht voll
+// Tellerantrieb: laeuft solange die Rinne nicht voll ist.
+// Blockade (kein Hall-Impuls, z.B. Mitnehmer laeuft gegen eine Flasche): anhalten, Pause, neu anlaufen.
 static void feederUpdate(uint32_t now, bool want) {
   if (inHallFeed.takeRose()) feedLastEdge = now;
-  if (feedRunning && now - feedLastEdge > (uint32_t)(2.5f * 60000.0f / max(P.feed_rpm, 5.0f)) && !feedStopReq)
-    { fault("Hubantrieb blockiert (kein Hall-Impuls)"); return; }
-  if (want && !feedRunning) feedStart();
-  if (!want && feedRunning) feedStopAtBottom();
-  if (feedStopReq && inHallFeed.active) feedStopNow();
+  if (feedRunning && now - feedLastEdge > 2500u + feedPulseMs()) {
+    feedStopNow(); feedStallT = now; cntStall++;
+    if (now - feedOkSince > 30000) feedStalls = 0;
+    if (++feedStalls >= P.max_stall) { fault("Teller blockiert (kein Hall-Impuls)"); return; }
+    Serial.printf("Teller blockiert -> Pause (%u)\n", feedStalls);
+    return;
+  }
+  if (feedRunning && now - feedOkSince > 30000) feedStalls = 0;
+  if (want && !feedRunning && now - feedStallT > P.t_stall_pause) feedStart();
+  if (!want && feedRunning) feedStopNow();
 }
 
 // Haupt-Zyklus Wendetrommel
@@ -299,7 +301,7 @@ static PDesc PD[] = {
   {"t_early",'u',&P.t_early},{"t_load_to",'u',&P.t_load_to},{"t_gate",'u',&P.t_gate},{"t_clamp",'u',&P.t_clamp},
   {"t_slide2",'u',&P.t_slide2},{"t_shaft_ok",'u',&P.t_shaft_ok},{"t_arrive",'u',&P.t_arrive},
   {"t_stau_on",'u',&P.t_stau_on},{"t_stau_off",'u',&P.t_stau_off},{"t_full_on",'u',&P.t_full_on},{"t_full_off",'u',&P.t_full_off},
-  {"feed_rpm",'f',&P.feed_rpm},{"feed_acc",'f',&P.feed_acc_rps2},
+  {"feed_rpm",'f',&P.feed_rpm},{"feed_acc",'f',&P.feed_acc_rps2},{"t_stall_pause",'u',&P.t_stall_pause},
   {"thr_pres",'u',&P.thr_pres},{"thr_orient",'u',&P.thr_orient},{"thr_full",'u',&P.thr_full},
   {"thr_shaftA",'u',&P.thr_shaftA},{"thr_shaftB",'u',&P.thr_shaftB},{"max_retry",'c',&P.max_retry},
 };
@@ -334,16 +336,16 @@ static void calibrate() {   // alle Strahlen frei! (Rotor, Rinne, Schacht leer)
 static void status() {
   static const char *MN[] = {"STOERUNG", "REFERENZ", "BEREIT", "BETRIEB", "STOPPT"};
   static const char *RN[] = {"warte", "laden", "messen", "wackeln", "warte_schacht", "abwurf", "halt58", "fall", "rueck"};
-  Serial.printf("Modus %s | Rotor %s %.1f Grad | Vereinzelung %d | Hub %s | Rinne %s | Stau %s | %s\n",
+  Serial.printf("Modus %s | Rotor %s %.1f Grad | Vereinzelung %d | Teller %s | Rinne %s | Stau %s | %s\n",
     MN[mode], RN[rs], rotAngle(), es, feedRunning ? "laeuft" : "steht", gutterFull ? "voll" : "frei",
     stau ? "JA" : "nein", warnEmpty ? "Rinne leer" : "");
-  Serial.printf("Flaschen %lu (davon Hals am Anschlag %lu), %.1f /min, Warn. Schacht %lu %s%s\n",
-    (unsigned long)cntTotal, (unsigned long)cntNeck, rate, (unsigned long)cntWarnArrive,
+  Serial.printf("Flaschen %lu (davon Hals am Anschlag %lu), %.1f /min, Warn. Schacht %lu, Teller-Blockaden %lu %s%s\n",
+    (unsigned long)cntTotal, (unsigned long)cntNeck, rate, (unsigned long)cntWarnArrive, (unsigned long)cntStall,
     mode == M_FAULT ? "| Fehler: " : "", mode == M_FAULT ? faultMsg : "");
 }
 static void sensors() {
   for (Beam *b : beams) Serial.printf("  %-9s %4u (Schwelle %4u) %s\n", b->name, b->raw, *b->thr, b->blocked ? "BELEGT" : "frei");
-  Serial.printf("  Hall Rotor %d  Hall Hub %d  Stau %d  Start %d  Stop(NC) %d  NotHalt-OK %d\n",
+  Serial.printf("  Hall Rotor %d  Hall Teller %d  Stau %d  Start %d  Stop(NC) %d  NotHalt-OK %d\n",
     inHallRot.active, inHallFeed.active, inStau.active, inStart.active, inStopNC.active, inEstopOk.active);
 }
 static void help() {

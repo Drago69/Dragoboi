@@ -1,24 +1,37 @@
 // =====================================================================
 //  Druckteile in Druckausrichtung (stuetzfrei, auf z=0, Bett 256x256)
-//  openscad -D 'PART="rotor_motorseite"' -o rotor_motorseite.stl print.scad
-//  Liste aller Teile: PARTS (wird von tools/build.sh verwendet)
+//  openscad -D 'PART="haken"' -o haken.stl print.scad
+//  Liste aller Teile: PARTS (wird von tools/build_parts.py verwendet)
 // =====================================================================
 include <config.scad>
 include <lib/basics.scad>
-include <parts/stair.scad>
 include <parts/gutter.scad>
+include <parts/teller.scad>
 include <parts/rotor.scad>
-include <parts/drive.scad>
 include <parts/misc.scad>
 
-PART = "stufe_M";
+PART = "haken";
 
 // [Name, Anzahl, Material, Hinweis]
 PARTS = [
- ["stufe_M",            7, "PETG", "liegend auf Rueckseite; 4 Waende, 25% Gyroid"],
- ["stufe_F",            6, "PETG", "liegend auf Rueckseite"],
- ["stufe_F0",           1, "PETG", "liegend auf Vorderflaeche"],
- ["rinne_trog",         1, "PETG", "liegend auf Vorderflaeche, Gleitflaechen 0.15 mm Schicht"],
+ ["haken",             10, "PETG", "flach, 5 Waende, 40% Fuellung (Mitnehmer)"],
+ ["nabe",               1, "PETG", "Rueckseite unten, 6 Waende, 60% Fuellung"],
+ ["lagerbock_teller",   1, "PETG", "Flansch unten, 5 Waende, 40% Fuellung"],
+ ["randring_1",         1, "PETG", "Fuss unten"],
+ ["randring_2",         1, "PETG", "Fuss unten"],
+ ["randring_3",         1, "PETG", "Fuss unten"],
+ ["randring_4",         1, "PETG", "Fuss unten"],
+ ["randring_5",         1, "PETG", "Fuss unten"],
+ ["randring_6",         1, "PETG", "Fuss unten"],
+ ["kantenwinkel_1",     4, "PETG", "Kante unten"],
+ ["kantenwinkel_2",     4, "PETG", "Kante unten"],
+ ["bodenauflage",       2, "PETG", "Holmseite unten"],
+ ["abstreifer",         1, "PETG", "Aussenende unten"],
+ ["uebergabe",          1, "PETG", "Rinnenlage (Kiel unten), Gleitflaechen 0.15 mm Schicht"],
+ ["auslauf",            1, "PETG", "Kiel unten"],
+ ["deckel_auslauf",     1, "PETG", "flach (transparentes PETG empfohlen)"],
+ ["haubenhalter",       4, "PETG", "stehend"],
+ ["keil_teller",        4, "PETG", "flach, 60% Fuellung"],
  ["rinne_G1",           1, "PETG", "auf Kiel"],
  ["rinne_G2",           1, "PETG", "auf Kiel"],
  ["deckel_G1",          1, "PETG", "flach (transparentes PETG empfohlen)"],
@@ -34,27 +47,30 @@ PARTS = [
  ["gehaeuse_lagerseite",1, "PETG", "Aussenplatte unten"],
  ["motorstutzen",       1, "PETG", "Motorseite unten"],
  ["fallschacht",        1, "PETG", "Flansch unten"],
- ["nocke",              1, "PETG", "flach, 6 Waende, 50% Fuellung"],
- ["rollenhalter",       1, "PETG", "Platte unten"],
- ["lagerbock",          1, "PETG", "Lagerachse senkrecht"],
- ["motorbock",          1, "PETG", "Getriebeflansch unten"],
- ["schlitten_adapter",  2, "PETG", "flach"],
- ["hallhalter_hub",     1, "PETG", ""],
- ["keil28",             6, "PETG", "flach, 60% Fuellung"],
- ["keil15",             4, "PETG", "flach"],
  ["sensorhalter_laser", 5, "PETG schwarz", "Grundplatte unten"],
  ["sensorhalter_pt",    5, "PETG schwarz", "Grundplatte unten"],
  ["e18_halter",         1, "PETG", "auf Steg liegend"],
- ["schuerzenwinkel",    8, "PETG", ""],
 ];
 
 // Nur Drehungen; tools/build_parts.py legt jedes Teil auf z=0 und zentriert es.
+module D_world_rot() multmatrix([[F_U[0], Dv2w([0,1,0])[0], Dv2w([0,0,1])[0], 0],
+                                 [F_U[1], Dv2w([0,1,0])[1], Dv2w([0,0,1])[1], 0],
+                                 [F_U[2], Dv2w([0,1,0])[2], Dv2w([0,0,1])[2], 0], [0,0,0,1]]) children();
 module print_part(name) {
-    if (name == "stufe_M") rotate([0,-90,0]) stufe_M();               // Rueckseite unten
-    if (name == "stufe_F") rotate([0,-90,0]) stufe_F();
-    if (name == "stufe_F0") rotate([0, 90,0]) stufe_F0();             // Vorderflaeche unten
-    if (name == "rinne_trog") rotate([0, 90,0]) rinne_trog();         // Vorderflaeche unten
-    if (name == "rinne_G1") rinne_G1();                               // Kiel unten
+    if (name == "haken") haken();                                         // Tellerseite unten
+    if (name == "nabe") nabe();                                           // Rueckseite (Muttern, Magnete) unten
+    if (name == "lagerbock_teller") rotate([180,0,0]) lagerbock_teller(); // Flansch unten
+    for (s=[0:5]) if (name == str("randring_", s + 1)) randring(s);       // Fuss unten
+    if (name == "kantenwinkel_1") rotate([0,180,0]) kantenwinkel(kw_dihedral(0));
+    if (name == "kantenwinkel_2") rotate([0,180,0]) kantenwinkel(kw_dihedral(1));
+    if (name == "bodenauflage") D_world_rot() bodenauflage_at(BA_X[1]);  // Weltlage: Holmseite waagerecht unten
+    if (name == "abstreifer") rotate([0,90,0]) rotate([0,0,-STRIP_A]) abstreifer();   // Aussenende unten
+    if (name == "uebergabe") uebergabe();                                 // Rinnenlage
+    if (name == "auslauf") auslauf();
+    if (name == "deckel_auslauf") deckel_auslauf();
+    if (name == "haubenhalter") haubenhalter();
+    if (name == "keil_teller") keil(TD_INCL);
+    if (name == "rinne_G1") rinne_G1();
     if (name == "rinne_G2") rinne_G2();
     if (name == "deckel_G1") deckel_G1();
     if (name == "deckel_G2") deckel_G2();
@@ -63,24 +79,15 @@ module print_part(name) {
     if (name == "klemmpad") klemmpad();
     if (name == "sperrkonsole") sperrkonsole();
     if (name == "sperrstift") sperrstift();
-    if (name == "rotor_motorseite") rotate([180,0,0]) rotor_motorseite();   // Trennflaeche unten
+    if (name == "rotor_motorseite") rotate([180,0,0]) rotor_motorseite();
     if (name == "rotor_lagerseite") rotor_lagerseite();
-    if (name == "gehaeuse_motorseite") gehaeuse_motorseite();                // Aussenplatte unten
+    if (name == "gehaeuse_motorseite") gehaeuse_motorseite();
     if (name == "gehaeuse_lagerseite") rotate([180,0,0]) gehaeuse_lagerseite();
     if (name == "motorstutzen") motorstutzen();
-    if (name == "fallschacht") rotate([180,0,0]) fallschacht();              // Flansch unten
-    if (name == "nocke") nocke_local();
-    if (name == "rollenhalter") rotate([180,0,0]) rollenhalter(0);
-    if (name == "lagerbock") rotate([90,0,0]) lagerbock();                    // Lagerachse senkrecht
-    if (name == "motorbock") rotate([90,0,0]) motorbock();                    // Getriebeflansch unten
-    if (name == "schlitten_adapter") rotate([0,90,0]) schlitten_adapter(-1, 0);
-    if (name == "hallhalter_hub") hallhalter_hub();
-    if (name == "keil28") keil28();
-    if (name == "keil15") keil15();
+    if (name == "fallschacht") rotate([180,0,0]) fallschacht();
     if (name == "sensorhalter_laser") sensorhalter_laser();
     if (name == "sensorhalter_pt") sensorhalter_pt();
     if (name == "e18_halter") rotate([-90,0,0]) e18_halter();
-    if (name == "schuerzenwinkel") schuerzenwinkel();
 }
 
 print_part(PART);

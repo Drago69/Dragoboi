@@ -5,6 +5,8 @@ Exportiert Baugruppen-Gruppen (SIMPLE=true, Profile als Vollquadrat) aus
 cad/assembly.scad als STL und schneidet sie paarweise mit manifold3d.
 Ein Ueberlapp > TOL mm^3 gilt als Kollision.
 
+Gruppen: Tellerrahmen, Bunker, Uebergabe, Haube, Rinne, Gehaeuse, Gestell, Flaschen;
+Teller (mit Taschenflaschen) ueber eine Hakenteilung, Rotor ueber alle Winkel.
 Aufruf:  python3 tools/check_collisions.py [--quick]
 """
 import os, sys, threading, subprocess, itertools, math, json, hashlib
@@ -68,29 +70,31 @@ def overlap(pa, pb):
     v = i.volume()
     bb = None
     if v > TOL:
+        # flaechige Beruehrung (Anlageflaechen) ist keine Kollision: mittlere Dicke < 0.1 mm
+        m = i.to_mesh(); tri = np.asarray(m.tri_verts); vp = np.asarray(m.vert_properties)[:, :3]
+        area = np.linalg.norm(np.cross(vp[tri[:,1]] - vp[tri[:,0]], vp[tri[:,2]] - vp[tri[:,0]]), axis=1).sum()/2
+        if 2*v/max(area, 1e-9) < 0.1:
+            return 0.0, None
         mn, mx = i.bounding_box()[:3], i.bounding_box()[3:]
         bb = [round(x, 1) for x in list(mn) + list(mx)]
     return v, bb
 
-def cam_lift(phi):
-    E, R, r = 40.0, 58.0, 11.0
-    h = lambda p: E*math.cos(math.radians(p)) + math.sqrt((R+r)**2 - (E*math.sin(math.radians(p)))**2)
-    return h(phi) - h(180)
-
 def main():
     quick = "--quick" in sys.argv
-    phis = [0, 45, 90, 135, 180, 225, 270, 315] if not quick else [0, 90, 180]
+    phis = list(range(0, 36, 3)) if not quick else [0, 12, 24]          # Tellerwinkel (eine Teilung 36 Grad)
     rots = [0, -20, -40, -62, 20, 40, 60, 80, 100, 118] if not quick else [0, -62, 118]
     jobs = {}
-    jobs["fixed"] = ("module_fixed", {})
+    jobs["frame"] = ("teller_frame", {})
+    jobs["hopper"] = ("hopper", {})
+    jobs["transfer"] = ("transfer", {})
+    jobs["hood"] = ("hood", {})
     jobs["gutter_closed"] = ("gutter", {"GATE_EXT": True})
     jobs["gutter_open"] = ("gutter", {"GATE_EXT": False})
     jobs["housing"] = ("housing", {})
     jobs["world"] = ("world", {})
     jobs["bottles"] = ("bottles", {})
     for p in phis:
-        jobs[f"car_{p}"] = ("carriage", {"CAM_PHI": p})
-        jobs[f"cam_{p}"] = ("cam", {"CAM_PHI": p})
+        jobs[f"disc_{p}"] = ("disc", {"TD_PHI": p})
     for a in rots:
         jobs[f"rot_{a}"] = ("rotor", {"ROT_ANG": a})
     with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as ex:
@@ -98,30 +102,25 @@ def main():
         paths = {k: f.result() for k, f in fut.items()}
     print(f"{len(paths)} Gruppen exportiert")
 
-    pairs = []
-    statics = ["fixed", "gutter_closed", "housing", "world"]
-    for a, b in itertools.combinations(statics, 2):
-        pairs.append((a, b))
+    statics = ["frame", "hopper", "transfer", "hood", "gutter_closed", "housing", "world"]
+    pairs = list(itertools.combinations(statics, 2))
     for p in phis:
-        for s in ["fixed", "gutter_closed", "housing", "world"]:
-            pairs.append((f"car_{p}", s))
-        for s in ["fixed", f"car_{p}", "world", "gutter_closed", "housing"]:
-            pairs.append((f"cam_{p}", s))
+        for s in ["frame", "hopper", "transfer", "hood", "gutter_closed", "world", "bottles"]:
+            pairs.append((f"disc_{p}", s))
     for a in rots:
-        for s in ["housing", "gutter_closed", "gutter_open", "world", "fixed"]:
+        for s in ["housing", "gutter_closed", "gutter_open", "world"]:
             pairs.append((f"rot_{a}", s))
-    # Flaschen (Nominallage, Rotor in Ladestellung, Sperre zu)
-    for s in ["fixed", "gutter_closed", "housing", "world", "rot_0", f"car_{phis[0]}"]:
+    for s in statics + ["rot_0"]:
         pairs.append(("bottles", s))
     pairs.append(("gutter_open", "housing"))
+    pairs.append(("gutter_open", "transfer"))
 
     bad = 0
     for a, b in pairs:
         v, bb = overlap(paths[a], paths[b])
-        flag = "KOLLISION" if v > TOL else "ok"
         if v > TOL:
             bad += 1
-            print(f"{flag:9s} {a:15s} x {b:15s}  {v:10.1f} mm3  bbox {bb}")
+            print(f"KOLLISION {a:15s} x {b:15s}  {v:10.1f} mm3  bbox {bb}")
     print(f"{len(pairs)} Paare geprueft, {bad} Kollisionen")
     return 1 if bad else 0
 

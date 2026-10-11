@@ -19,7 +19,7 @@ Nach dem Entriegeln des Not-Halts schaltet K1 wieder ein (Selbsthaltung über ei
 | GPIO | Funktion | Anschluss |
 |---|---|---|
 | 25 / 26 / 27 | Rotor STEP / DIR / EN | TMC2209 #1 (MS1 = MS2 = VIO → 1/16 Schritt) |
-| 18 / 19 / 21 | Hub STEP / DIR / EN | TMC2209 #2 (1/16) |
+| 18 / 19 / 21 | Teller STEP / DIR / EN | TMC2209 #2 (1/16) |
 | 16 | Ventil Sperre A | MOSFET → Spule 24 V, Freilaufdiode. **HIGH = Stift eingefahren (offen)** |
 | 17 | Ventil Klemme B | MOSFET → Spule 24 V. **HIGH = Klemme zu** |
 | 15 | Laser-Versorgung 5 V | MOSFET (alle 5 Laser parallel, je ≈ 20 mA) |
@@ -31,7 +31,7 @@ Nach dem Entriegeln des Not-Halts schaltet K1 wieder ein (Selbsthaltung über ei
 | 35 | Lichtschranke Schacht A (X = +3) | dto. |
 | 32 | Lichtschranke Schacht B (X = +22) | dto. |
 | 13 | Hall A3144 Rotor-Referenz | OUT → GPIO + 4,7 kΩ nach 3,3 V; VCC 5 V |
-| 14 | Hall A3144 Schlitten unten | dto. |
+| 14 | Hall A3144 Teller (im Lagerbock, 10 Magnete in der Nabe = 1 Impuls je Haken) | dto. |
 | 4 | E18-D80NK Band-Stau | schwarz → GPIO + 4,7 kΩ nach 3,3 V; braun 5 V, blau GND |
 | 22 | Taster Start (Schließer) | nach GND |
 | 23 | Taster Stop (**Öffner**) | nach GND, offen bzw. Drahtbruch = Stop |
@@ -39,7 +39,7 @@ Nach dem Entriegeln des Not-Halts schaltet K1 wieder ein (Selbsthaltung über ei
 
 Zum Test am Tisch: GPIO 23 und GPIO 5 mit Drahtbrücken auf GND legen.
 
-**Motorströme** (Vref-Poti am TMC2209, nach Datenblatt des Moduls): Rotor-NEMA17 **1,0 A RMS**, Hubmotor 17HS19-1684S-PG14 **1,4 A RMS**. Die TMC2209 brauchen Kühlkörper.
+**Motorströme** (Vref-Poti am TMC2209, nach Datenblatt des Moduls): Rotor-NEMA17 **1,0 A RMS**, Tellermotor 17HS19-1684S-PG14 **1,4 A RMS**. Die TMC2209 brauchen Kühlkörper.
 
 **Lichtschranken:** 650-nm-Laser Ø6 (≤ 1 mW, Klasse 2) im Halter `sensorhalter_laser` mit Blende 2,5 mm. Gegenüber sitzt ein Fototransistor 5 mm im `sensorhalter_pt` mit Blende 1,5 mm. Alle Strahlen laufen durch Ø4-Bohrungen und sind abgedeckt. Kabel in den Halter-Schlitz legen und mit einer M3-Madenschraube klemmen.
 

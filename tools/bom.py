@@ -20,47 +20,44 @@ for l in lines:
 
 # ---- Zuschnitt
 def group_name(n):
-    for k in ["Bein", "Grundtraeger", "Stationsquerholm", "MGN-Saeule", "Aussenstaender", "Bodentraeger",
-              "Bodenstuetze", "Schlitten", "Bodenrahmen", "Modulstuetze", "Rotorsaeule", "Rotorarm",
-              "Sensorausleger", "Strebe"]:
-        if n.startswith(k): return k
+    for k in ["Tellerrahmen", "Querholm", "Stuetze", "Bunker-Frontholm", "Bodenrahmen", "Rotorsaeule",
+              "Rotorarm", "Sensorausleger", "Strebe"]:
+        if n.startswith(k): return n
     return n
 cut = collections.Counter()
 for (n, L), q in profiles.items():
-    cut[(group_name(n) if not n.startswith("Bein") else n, L)] += q
+    cut[(group_name(n), L)] += q
 total_len = sum(L*q for (n, L), q in cut.items())
 bars = math.ceil(total_len*1.05/2000)
 
-# ---- Normteile (Herleitung siehe Kommentar)
+# ---- Normteile (Herleitung siehe Verwendung)
 NM = [
- # Stufen
- ("M5x50 ISO 4762", 14, "Kappen M1..M7 an Beine (Stirnseite)"),
- ("M5x10 ISO 4762", 14, "Kappen F1..F6 + F0 an Beine"),
- ("M5x20 ISO 4762", 2,  "Trog an Beine (Vorderflaeche)"),
- ("Hammermutter M5 Nut 6", 30, "fuer die 30 Kappenschrauben"),
+ # Hakenteller
+ ("Senkschraube M4x16 ISO 10642", 20, "Haken: von hinten durch die Tellerplatte in den Einsatz"),
+ ("Senkschraube M5x40 ISO 10642 + Mutter M5", 4, "Nabe: von vorn durch Teller + Nabe, Mutter in der Nabe"),
+ ("Schraube M4x16 ISO 4762 + Mutter M4", 1, "Nabe: Klemmung auf der Wellenabflachung (Kopf frei im Senkloch)"),
+ ("Gewindeeinsatz M4 (z.B. Ruthex RX-M4x8,1)", 45,
+  "Haken 20, Randring 12, Uebergabe 3, Abstreifer 4, Bodenauflage 2, Reserve 4"),
+ ("Schraube M5x12 ISO 4762 + Hammermutter M5 Nut 6", 4, "Lagerbock an die Querholme"),
+ ("Schraube M4x10 ISO 4762", 4, "Getriebeflansch an Lagerbock (Laenge am Motor pruefen)"),
+ ("Schraube M5x10 ISO 4762 + Scheibe + Hammermutter M5", 17, "Rueckwand an Tellerrahmen"),
+ ("Senkschraube M4x10 ISO 10642", 19, "von hinten durch die Rueckwand: Randring 12, Uebergabe 3, Abstreifer 4"),
+ ("Schraube M4x90 ISO 4762 + Mutter + 2 Scheiben", 4, "Haube mit Distanzrohr an Rueckwand"),
+ ("Senkschraube M4x16 ISO 10642 + Mutter M4", 16, "Kantenwinkel (8 Stueck) an den Bunkerblechen"),
+ ("Senkschraube M4x12 ISO 10642", 2, "Bunkerboden auf Bodenauflage"),
+ ("Schraube M5x12 ISO 4762 + Hammermutter M5", 4, "Bodenauflage auf Bunker-Frontholm"),
+ ("Schraube M5x20 ISO 4762 (in Profilkernloch, M5 schneiden)", 4, "Keile auf Stuetzen"),
+ ("Schraube M5x12 ISO 4762 + Hammermutter M5", 8, "Keile an Tellerrahmen (2 je Keil)"),
  # Profilverbindungen
- ("Winkel 20x20 Nut 6 (Druckguss) inkl. 2x M5x10 + 2x Hammermutter", 160,
-  "Beine (30 Stk. x 2), Holme Schlitten (12), Grundtraeger/Querholme (24), Aussenstaender (22), "
-  "MGN-Saeulen (4), Bodenrahmen (20), Stuetzen/Saeulen (14), Arm/Ausleger (4)"),
+ ("Winkel 20x20 Nut 6 (Druckguss) inkl. 2x M5x10 + 2x Hammermutter", 52,
+  "Tellerrahmen 8, Querholme 4, Bodenrahmen 16, Stuetzen 12, Frontholm 2, Rotorsaeule/Arm/Ausleger 6, Reserve 4"),
  ("Gelenkverbinder 20x20 Nut 6", 4, "Diagonalstreben Rotorsaeule"),
- ("M3x8 ISO 4762 + Hammermutter M3 Nut 6", 16, "MGN12-Schienen an Saeulen (Teilung 25 mm)"),
- ("M3x8 ISO 4762", 8, "MGN12H-Wagen an Schlittenadapter"),
- ("M5x12 ISO 4762 + Hammermutter M5", 4, "Schlittenadapter an Querholme"),
- ("M5x10 ISO 4762 + Hammermutter M5", 2, "Rollenhalter an Mittelholm"),
- ("M5x12 ISO 4762 + Hammermutter M5", 4, "Lagerbock + Motorbock seitlich am Grundtraeger"),
- ("M4x10 ISO 4762", 4, "Getriebeflansch an Motorbock"),
- ("M3x12 ISO 4762 + Mutter M3", 4, "Flanschkupplung an Nocke"),
- ("M5x20 ISO 4762 (in Profilkernloch, M5 schneiden)", 10, "Keile 28 (6) und 15 (4) senkrecht"),
- ("M5x12 ISO 4762 + Hammermutter M5", 20, "Keile an Traeger (2 je Keil)"),
- ("M5x10 ISO 4762 + Scheibe + Hammermutter", 48, "Seitenwaende/Rueckwand an Aussenstaender"),
- ("M5x12 ISO 10642 (Senkkopf) + Hammermutter", 10, "Bunkerboden an Bodentraeger"),
- ("M4x12 ISO 4762 + Mutter + Scheibe", 32, "Schuerzen-/Eckwinkel (8 Winkel x 4)"),
  # Rinne / Rotor
  ("Gewindeeinsatz M3 (z.B. Ruthex RX-M3x5,7)", 76,
-  "Trogflansch 4, G2 8 (Flansch 4 + Konsole 4), Deckel 16, Gehaeuse 4 (Flansch) + 4 (Schacht) + 5 (Haelften) "
-  "+ 8 (Sensoren), Rinne G1 4 (Sensor), Schacht 8 (Sensoren), Reserve 15"),
- ("M3x16 ISO 4762", 12, "Kanalstoesse Trog-G1, G1-G2, G2-Gehaeuse"),
- ("M3x8 ISO 4762", 32, "Deckel (12), Sensorhalter (20)"),
+  "Auslauf 8 (Flansche) + 4 (Deckel), G2 8 (Flansch 4 + Konsole 4), Deckel G1/G2 16, Gehaeuse 4 (Flansch) + 4 (Schacht) + 5 (Haelften) "
+  "+ 8 (Sensoren), Rinne G1 4 (Sensor), Schacht 8 (Sensoren), Reserve 3"),
+ ("M3x16 ISO 4762", 15, "Kanalstoesse Uebergabe-Auslauf (3), Auslauf-G1, G1-G2, G2-Gehaeuse (je 4)"),
+ ("M3x8 ISO 4762", 36, "Deckel (16), Sensorhalter (20)"),
  ("M3x20 ISO 4762", 8, "Klemmbock (4), Motor Rotor (4)"),
  ("M3x10 ISO 4762", 8, "Sperrkonsole (4), Fallschacht (4)"),
  ("M3x35 ISO 4762", 5, "Gehaeusehaelften"),
@@ -72,10 +69,10 @@ NM = [
 ]
 EL = [
  ("ESP32 DevKitC V4 (38 Pin)", 1, "Steuerung"),
- ("Schrittmotortreiber TMC2209 (Modul, z.B. BTT V1.3)", 2, "Rotor + Hubantrieb"),
+ ("Schrittmotortreiber TMC2209 (Modul, z.B. BTT V1.3)", 2, "Rotor + Tellerantrieb"),
  ("Netzteil 24 V / 6,5 A (150 W, z.B. Mean Well LRS-150-24)", 1, ""),
  ("DC/DC-Wandler 24 V -> 5 V / 3 A", 1, "ESP32, Laser, Sensoren"),
- ("MOSFET-Modul 4-fach (z.B. IRLZ44N/AOD4184, Logic-Level) + Freilaufdioden", 1, "2 Ventile + Reserve"),
+ ("MOSFET-Modul 4-fach (z.B. IRLZ44N/AOD4184, Logic-Level) + Freilaufdioden", 1, "2 Ventile + Laser + Leuchte"),
  ("Magnetventil 5/2 monostabil 24 VDC, M5 (z.B. Airtac 4V110-M5)", 2, "Sperre A, Klemme B"),
  ("Druckregler mit Manometer 0-4 bar, Wartungseinheit", 1, "Klemme B mit 1-2 bar"),
  ("Steckverschraubung M5 auf 4 mm + Drosselrueckschlag M5", 4, "Zylinderanschluesse"),

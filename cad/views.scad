@@ -1,4 +1,4 @@
-// Ansichten fuer die Dokumentation (tools/render.sh)
+// Ansichten fuer die Dokumentation (tools/build_all.sh)
 include <assembly.scad>
 GROUP = "none";
 VIEW  = "rotor_section";
@@ -24,6 +24,20 @@ if (VIEW == "rotor_section") {
     to_rotorR() rotate([0,0,THETA_LOAD]) for (p=[SENS_PRES, SENS_ORIENT]) color("red")
         translate([p[0], p[1], 0]) cylinder(d=1.5, h=80, center=true, $fn=12);
 }
-if (VIEW == "stair") {
-    to_module() { grp_module_fixed(); grp_carriage(); grp_cam(); }
+// Teller mit Haken, Ring, Uebergabe (ohne Haube, Bleche durchsichtig), Flasche in T
+if (VIEW == "teller") {
+    grp_teller_frame(); grp_disc(); grp_hopper(); grp_transfer();
+    to_gutter() for (s=[S_T + 30, S_T + 160]) bottle_lying(s - B_L/2, 1);
+}
+// Uebergabe im Schnitt senkrecht zur Rinne (Ebene s = S_T + DS), Blick entlang der Rinne
+DS = 40;
+module w2sec() multmatrix([[1,0,0,0],[0,0,1,0],[0,1,0,-(S_T + DS)],[0,0,0,1]]) rotate([ALPHA,0,0]) translate([0,0,-ROT_Z]) children();
+module sec(c) color(c) linear_extrude(1) projection(cut=true) w2sec() children();
+if (VIEW == "uebergabe_schnitt") {
+    sec([0.85,0.85,0.8]) to_teller() rotate([0,0,TD_PHI]) tellerplatte();
+    sec(C_PRINT) to_teller() rotate([0,0,TD_PHI]) for (k=[0:TD_N-1]) rotate([0,0,k*TD_PITCH]) haken();
+    sec(C_PRINT) to_gutter() uebergabe();
+    sec(C_SHEET) to_tellerD() place_rueckwand();
+    sec(C_BOTTLE) to_gutter() bottle_lying(S_T + DS - B_L/2, 1);
+    sec(C_PRINT2) to_tellerD() place_haube();
 }

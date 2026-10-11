@@ -16,11 +16,9 @@
 //            z = n  (senkrecht zur Rinne, "oben").
 //            n = 0 ist die Flaschenachse in der Rinne.
 //            G = translate([0,0,ROT_Z]) rotate([-ALPHA,0,0])
-//  Modul M : Stufenfoerderer (komplett um ALPHA gekippt)
-//            x = Stufen steigen in +x (Bunker bei -x),
-//            y = entlang der Stufen (+y bergab = s-Richtung),
-//            z = Hubrichtung.
-//            M = G * translate([-XT, C_S, -ZT])
+//  Teller TD: schraeger Hakenteller, siehe Abschnitt "Hakenteller".
+//            TD = G * translate(TD_C) rotate([0,-45,0])
+//  Teller D : wie TD, um z gedreht: x_D waagerecht, y_D bergauf.
 //  Rotor R : Achse = z_R (= Welt X), Winkel theta in x_R/y_R Ebene,
 //            x_R = Welt Y, y_R = Welt Z - ROT_Z.
 // =====================================================================
@@ -54,7 +52,7 @@ GUIDE_GAP   = 34;   // Abstand Seitenfuehrungen (D30 + 4)
 // ---------------------------------------------------------------------
 // Allgemein
 // ---------------------------------------------------------------------
-ALPHA   = 28;       // Neigung Stufenfoerderer/Rinne gegen Waagerechte
+ALPHA   = 28;       // Neigung Rinne gegen Waagerechte (bestimmt auch die Tellerlage)
 PROF    = 20;       // Profil 20x20 Nut 6 B-Typ
 SLOT_W  = 6.2;
 CORE_D  = 4.2;      // Kernbohrung (M5 Gewinde schneidbar)
@@ -146,78 +144,70 @@ GATE_TOP_EXT = -CH_APEX + 15; // Stiftoberkante ausgefahren (n)
 GATE_STROKE  = 25;
 
 // ---------------------------------------------------------------------
-// Stufenfoerderer (Modul-Koordinaten)
+// Hakenteller (schraeger Drehteller mit Haken)  --  Teller-Frame TD
+//   Ursprung = Tellermitte auf der Tellerflaeche, z = Flaechennormale
+//   (Seite der Flaschen), x = radial zum Uebergabepunkt T, y = Laufrichtung
+//   der Flasche in T (= +s der Rinne).  Die Tellerflaeche ist die +X-Flanke
+//   der 90-Grad-V-Rinne, die Hakenleiste/der Pflug die -X-Flanke.
+//   Winkel "D" (Bunker): x_D waagerecht, y_D bergauf;  Winkel_TD = Winkel_D + TD_DROT.
 // ---------------------------------------------------------------------
-ST_N     = 7;          // Anzahl bewegte Stufen
-ST_L     = 240;        // Stufenlaenge (y) = Druckteillaenge
-ST_D     = 32;         // Stufentiefe (x)
-ST_GAP   = 0.75;       // Spalt zwischen Stufen
-ST_P     = ST_D + ST_GAP;
-ST_BETA  = 10;         // Stufenoberseite faellt nach +x
-ST_EPS   = 2.5;        // Ueberhoehung bei Uebergabe
-ST_STROKE= 80;         // Hub (= 2 x Exzentrizitaet)
-ST_DELTA = ST_D*tan(ST_BETA);                       // 5.64
-ST_H     = ST_STROKE - 2*ST_DELTA - 2*ST_EPS;       // 63.7 Stufenhoehe
-CAP_H    = 100;        // Hoehe Stufenkappe (an Hinterkante)
-CAP_POCKET = 35;       // Tasche fuer Profilbein
-LEG_Y_M  = 60;         // Beine bewegte Stufen y=+-60
-LEG_Y_F  = 100;        // Beine feste Stufen y=+-100
-FLOOR_SLOPE = 10;      // Bunkerboden steigt nach -x (mit 28 Grad Kippung: 29,6 Grad Gefaelle)
-SIDE_IN  = ST_L/2 + ST_GAP;   // 120.75 Innenflaeche Seitenwand
-
-function f_lvl(i) = i*ST_H;                    // Vorderkante feste Stufe i
-function x_plate(k) = k*ST_P;                  // k=0:M1, 1:F1, 2:M2 ...
-function x_M(i) = x_plate(2*(i-1));
-function x_F(i) = x_plate(2*i-1);
-// Oberkante hinten (hoechster Punkt) bewegte Stufe i bei Hub u (u=0 unten)
-function zM_back(i,u) = f_lvl(i-1) - ST_EPS + u;
-function zF_back(i)   = f_lvl(i) + ST_DELTA;
-
-// Trog (= feste Stufe N) mit V-Rinne
-TR_XL   = x_plate(2*ST_N-1);                 // Lippe (Hinterkante)
-TR_ZLIP = f_lvl(ST_N) + ST_DELTA;            // Lippenhoehe
-ZT      = TR_ZLIP - 8;                       // Flaschenachse im Trog
-XT      = TR_XL + 8 + CH_APEX;               // Rinnenmitte x
-TR_FRONT_T = 12;                             // Vorderwand
-TR_X1   = XT + CH_W/2 + TR_FRONT_T;          // Vorderkante Trog
-TR_WALL_TOP = ZT + 50;
-TR_Y0   = -ST_L/2;  TR_Y1 = 126;             // Trog laeuft durch Seitenwand
-ABW_Y0  = 60;                                // Abweiser beginnt
-
-// Rinne <-> Modul
-S_EXIT  = -344.25;                           // Trogende = Start G1
-C_S     = S_EXIT - TR_Y1;                    // s = y + C_S
-
-// Schlitten / Fuehrung
-CAR_Z0   = -125;      // OK Laengstraeger Schlitten bei u=0
-CAR_LONG_Y = 60;
-POST1_X  = -95;       // MGN-Saeule 1 (unter Bunkerboden)
-POST2_X  = 540;       // MGN-Saeule 2 (unter Trog)
-MGN_H = 13; MGN_RAIL_W = 12; MGN_RAIL_H = 8; MGN_BLK_W = 27; MGN_BLK_L = 45.4;
-ADAPT_T  = 8;
-CB1_X0 = POST1_X + PROF/2 + MGN_H + ADAPT_T;    // Querholm 1 von x
-CB2_X1 = POST2_X - PROF/2 - MGN_H - ADAPT_T;    // Querholm 2 bis x
-CAM_X   = (x_F(3) + x_F(4))/2 + ST_D/2;         // zwischen Beinen F3/F4
-CAM_E   = ST_STROKE/2;    // 40
-CAM_R   = 58;
-CAM_T   = 8;
-ROLL_R  = 11;             // 608
-ROLL_OFF= 22;             // Rollenmitte unter Querholm-UK
-CAM_ZS  = (CAR_Z0 - PROF) - ROLL_OFF - (CAM_R + ROLL_R - CAM_E);   // Wellenhoehe
-BASE_Z1 = CAM_ZS - 25;    // OK Grundtraeger (y=+-100)
-BASE_Z0 = BASE_Z1 - PROF;
-XBEAM_Z1 = BASE_Z0;       // OK Querholme unter Grundtraegern
-XBEAM_Z0 = XBEAM_Z1 - PROF;
-X_BACK  = -750;           // Bunkerrueckwand innen (Bunker ca. 530 Flaschen)
-APRON_X = x_F(2) + 12;    // Schuerze ueber F2
-APRON_Z = zF_back(2) + 40;
-STATIONS = [X_BACK-14, (X_BACK+POST1_X)/2, POST1_X, CAM_X-120, CAM_X+120, POST2_X];
-OUT_Y   = SIDE_IN + SHEET_T + PROF/2;   // 134.75 Aussenstaender
-XBEAM_HALF = OUT_Y + PROF/2;            // 144.75
-Z_RIM   = BELT_Z + 350;   // Bunkerrand (waagerecht, Welt) = Einfuellhoehe
-
-// Schuettvolumen-Schaetzung siehe tools/check.py
-
+S_EXIT  = -344.25;      // Stoss Auslauf -> Rinne G1
+TD_R    = 250;          // Tellerplatte D500 (PE-HD 10 mm, Zukauf/Zuschnitt)
+TD_T    = 10;
+TD_RB   = 228.7;        // Bahnradius Flaschenachse
+TD_RL   = TD_RB - B_D/2;        // 213.7  Hakenleiste aussen = Pflugflaeche = -X-Flanke
+TD_N    = 10;           // Anzahl Haken
+TD_PITCH= 360/TD_N;
+TD_RPM  = 15;           // Nenndrehzahl (Firmware: feed_rpm)
+HK_RI   = 196;          // Haken innen
+HK_H    = 17;           // Hakenhoehe ueber Tellerflaeche
+HK_PT   = 8;            // Mitnehmer tangential
+HK_PR   = 232.2;        // Mitnehmer aussen (ueber Flaschenmitte hinaus)
+HK_YR   = -B_L/2 - 0.75;        // Mitnehmerflaeche -52
+HK_YF   = 44;           // Leistenende vorn
+HK_SCREW= [[205,-30],[205,22]]; // M4-Senkschrauben von hinten (Haken-Frame)
+PLOW_Z0 = HK_H + 1;     // Unterkante Pflug ueber Tellerflaeche
+S_T     = -590;         // Uebergabepunkt T (Flaschenmitte, Rinne s)
+TD_GRAV = [-cos(ALPHA)/sqrt(2), sin(ALPHA), -cos(ALPHA)/sqrt(2)];   // Schwerkraft im TD
+TD_BOT_ANG = atan2(TD_GRAV[1], TD_GRAV[0]);     // 143.06 tiefster Punkt (TD)
+TD_TOP_ANG = TD_BOT_ANG - 180;                  // -36.94 hoechster Punkt (TD)
+TD_DROT = TD_TOP_ANG - 90;                      // D-Frame = TD um z gedreht
+TD_INCL = acos(cos(ALPHA)/sqrt(2));             // 51.37 Tellerneigung gegen Waagerechte
+TD_C    = [(B_D/2 - TD_RB)/sqrt(2), S_T, -(TD_RB + B_D/2)/sqrt(2)];  // Tellermitte (Rinne)
+// Randring (D-Frame): haelt die Flaschen in den Taschen auf der steigenden Seite
+RING_RI  = 251.5;       // innen = Ausschnitt Rueckwand (Flaschenecken reichen bis r 249)
+RING_H   = 40;          // Hoehe (z), darauf stehen die Bunkerbleche
+TD_HOLE  = 251.5;       // Ausschnitt Rueckwand
+RING_A0  = 160;         // D-Winkel Anfang (links oben, wird am Auslauf beschnitten)
+RING_A1  = 395;         // D-Winkel Ende (rechts, 35 Grad)
+RING_SEG = [160, 205, 250, 290, 330, 365, 395];   // Teilung Druckteile
+STRIP_A  = 57;          // Abstreifer zweite Lage (D-Winkel)
+// Bunker: Facetten-Trichter auf dem Randring (D-Frame)
+//   Jede Facette: Gerade in z = RING_H tangential an Kreis HOP_RT bei D-Winkel,
+//   um 'tilt' nach aussen gekippt.  Boden: Weltneigung HOP_FLOOR.
+HOP_RT    = 252;
+HOP_FLOOR = 28;
+HOP_TF    = 90 - TD_INCL - HOP_FLOOR;           // 10.63
+HOP_FACETS = [[270, HOP_TF], [230, 20], [195, 25], [310, 20], [345, 25]];
+Z_RIM   = BELT_Z + 340;  // Fuellhoehe = Bunkerrand (waagerecht), unter dem Auslauf
+// Haube ueber der oberen Tellerhaelfte (Schutz + Ueberfuellung)
+HOOD_Z  = 70;
+// Rueckwand (Platte) + Tellerrahmen (D-Frame, hinter der Rueckwand)
+BP_X    = 334;  BP_Y = 282;      // Rueckwand +-BP_X, +-BP_Y
+TF_Z1   = -SHEET_T;              // Vorderseite Rahmen
+TF_XS   = BP_X - PROF/2;         // Seitenholme (Mitte)
+TF_YB   = BP_Y - PROF/2;         // oberer/unterer Holm (Mitte)
+TC_X    = 50;                    // Querholme Lagerung (Mitte), hinter dem Rahmen
+TC_Z1   = TF_Z1 - PROF;          // Vorderseite Querholme (-24)
+// Antrieb
+HUB_D   = 66;  HUB_L = 30;  HUB_PCD = 40;  HUB_SPIGOT = 20;
+SHAFT_D = 12;  SHAFT_L = 118;          // Welle von z=-6 bis -124
+MAG_R   = 27;                    // Magnete in Nabe (je Tasche einer)
+LB_Z0   = TC_Z1 - PROF;          // Lagerbock Vorderseite (-44) an Querholmen
+LB_B1   = LB_Z0 - 2;             // vorderes Lager 6001 (Vorderkante)
+LB_B2   = LB_Z0 - 48;            // hinteres Lager (Hinterkante)
+GB_Z    = LB_Z0 - 100;           // Getriebeflansch
+WORLD_POST_X = 250;              // Stuetzen unter den Rahmenholmen (x_D)
 // ---------------------------------------------------------------------
 // Rotorsaeule / Arm
 // ---------------------------------------------------------------------
@@ -232,15 +222,25 @@ STAU_X  = 250;
 // Abgeleitete Transformationen
 // ---------------------------------------------------------------------
 module to_gutter()  { translate([0,0,ROT_Z]) rotate([-ALPHA,0,0]) children(); }
-module to_module()  { to_gutter() translate([-XT, C_S, -ZT]) children(); }
+module to_teller()  { to_gutter() translate(TD_C) rotate([0,-45,0]) children(); }
+module to_tellerD() { to_teller() rotate([0,0,TD_DROT]) children(); }
 // Rotor-Frame: z_R = Welt X, x_R = Welt Y, y_R = Welt Z
 module to_rotorR()  { translate([0,0,ROT_Z]) multmatrix([[0,0,1,0],[1,0,0,0],[0,1,0,0],[0,0,0,1]]) children(); }
 
-// Punkt Modul -> Welt (fuer Berechnungen)
-function m2w(p) = let(a=ALPHA, y=p[1]+C_S, z=p[2]-ZT)
-    [p[0]-XT, y*cos(a) + z*sin(a), ROT_Z - y*sin(a) + z*cos(a)];
 // Punkt Rinne (X,s,n) -> Welt
 function g2w(p) = let(a=ALPHA) [p[0], p[1]*cos(a)+p[2]*sin(a), ROT_Z - p[1]*sin(a) + p[2]*cos(a)];
+// Punkt Teller-Frame -> Rinne / Welt
+function td2g(p) = TD_C + [p[0]*cos(45) - p[2]*sin(45), p[1], p[0]*sin(45) + p[2]*cos(45)];
+function td2w(p) = g2w(td2g(p));
+function D2td(p) = let(a = TD_DROT) [p[0]*cos(a) - p[1]*sin(a), p[0]*sin(a) + p[1]*cos(a), p[2]];
+function D2w(p)  = td2w(D2td(p));
+function Dv2w(v) = D2w(v) - D2w([0,0,0]);
+// Bodenrahmen-Frame F (waagerecht): u = x_D, w = waagerechter Anteil der Tellernormale
+F_U = Dv2w([1,0,0]);
+F_W = let(n = Dv2w([0,0,1])) [n[0], n[1], 0]/norm([n[0], n[1], 0]);
+module to_floorF() multmatrix([[F_U[0], F_W[0], 0, 0], [F_U[1], F_W[1], 0, 0], [0,0,1,0], [0,0,0,1]]) children();
+function F2w(p) = [p[0]*F_U[0] + p[1]*F_W[0], p[0]*F_U[1] + p[1]*F_W[1], p[2]];
+function w2F(p) = [p[0]*F_U[0] + p[1]*F_U[1], p[0]*F_W[0] + p[1]*F_W[1], p[2]];
 // Schachtkoordinaten (s,n) bei Rotorwinkel phi (Grad, Richtung Anschlagende) -> Rotor-Frame (x_R,y_R)
 function sn2R(sn, phi) = [sn[0]*cos(phi) - sn[1]*sin(phi), sn[0]*sin(phi) + sn[1]*cos(phi)];
 

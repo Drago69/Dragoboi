@@ -19,6 +19,14 @@ def build(p):
     if r.returncode != 0 or not os.path.exists(tmp):
         return name, None, r.stderr[-800:]
     m = trimesh.load(tmp); os.remove(tmp)
+    # CGAL hinterlaesst gelegentlich entartete Flaechenreste ohne Volumen -> entfernen
+    parts = m.split(only_watertight=False)
+    if len(parts) > 1:
+        vols = [p.volume for p in parts]
+        # Reste ohne Volumen und gegenlaeufige Doppelflaechen (+V/-V) verwerfen
+        keep = [p for p, v in zip(parts, vols) if abs(v) > 1.0 and not any(abs(v + w) < 1e-3*abs(v) for w in vols)]
+        m = trimesh.util.concatenate(keep)
+        m.merge_vertices()
     b = m.bounds; m.apply_translation([-(b[0][0]+b[1][0])/2, -(b[0][1]+b[1][1])/2, -b[0][2]])
     m.export(out)
     return name, m, r.stderr

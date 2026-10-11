@@ -1,6 +1,6 @@
 // =====================================================================
 //  Kleinteile: Lichtschrankenhalter (Laser / Fototransistor), E18-Halter,
-//  Schuerzenwinkel
+//  Keil (Stuetze -> schraeger Holm)
 // =====================================================================
 
 // Lichtschrankenhalter. Montageflaeche z=0, Strahlachse +z (nach aussen),
@@ -49,13 +49,26 @@ module e18_halter() {
     }
 }
 
-// Schuerzenwinkel (Schuerze an Seitenwand), M4
-module schuerzenwinkel() {
+// ---------------------------------------------------------------------
+// Keil (generisch): Unterseite waagerecht auf Stuetze, Oberseite um ang geneigt.
+// Lokaler Rahmen: Stuetzenachse z, Neigung steigt in +y.
+//  w = Breite quer, l = Laenge (waagerecht), tmin = Mindestdicke
+KEIL_L = 64; KEIL_TMIN = 6;
+function keil_c(ang) = KEIL_TMIN + KEIL_L/2*tan(ang);      // Hoehe Mitte Oberseite
+module keil(ang, w=20, l=KEIL_L, tmin=KEIL_TMIN) {
+    h1 = tmin + l*tan(ang);
     difference() {
-        union() { cube([25, 3, 30]); cube([3, 25, 30]); hull() { cube([12, 3, 3]); cube([3, 12, 3]); } }
-        for (z=[9, 21]) {
-            translate([15, -1, z]) rotate([-90,0,0]) cylinder(d=M4_D, h=5, $fn=24);
-            translate([-1, 15, z]) rotate([0,90,0]) cylinder(d=M4_D, h=5, $fn=24);
+        hull() {
+            translate([-w/2, -l/2, 0]) cube([w, l, tmin]);
+            translate([-w/2, l/2 - 0.01, 0]) cube([w, 0.01, h1]);
+        }
+        // M5 senkrecht in Kernbohrung der Stuetze (Kopf von oben, tief versenkt)
+        translate([0,0,-1]) cylinder(d=M5_D, h=50, $fn=24);
+        translate([0,0,tmin - 1.5]) cylinder(d=M5_HEAD_D + 0.6, h=200, $fn=32);
+        // 2 x M5 senkrecht zur Schraegflaeche in Traeger-Nut (Kopf unten)
+        for (v=[-l/2 + 8, l/2 - 14]) translate([0, v, tmin + (v + l/2)*tan(ang)]) rotate([ang,0,0]) {
+            translate([0,0,-60]) cylinder(d=M5_D, h=70, $fn=24);
+            translate([0,0,-60 - 3]) cylinder(d=M5_HEAD_D + 0.6, h=60 - 4, $fn=32);
         }
     }
 }

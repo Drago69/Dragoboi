@@ -10,7 +10,7 @@
 constexpr uint8_t PIN_ROT_STEP   = 25;
 constexpr uint8_t PIN_ROT_DIR    = 26;
 constexpr uint8_t PIN_ROT_EN     = 27;   // LOW = aktiv
-// Schrittmotor Hubantrieb (TMC2209 #2, 1/16)
+// Schrittmotor Tellerantrieb (TMC2209 #2, 1/16)
 constexpr uint8_t PIN_FEED_STEP  = 18;
 constexpr uint8_t PIN_FEED_DIR   = 19;
 constexpr uint8_t PIN_FEED_EN    = 21;
@@ -29,7 +29,7 @@ constexpr uint8_t PIN_PT_SHAFT_A = 35;   // Fallschacht X=+3
 constexpr uint8_t PIN_PT_SHAFT_B = 32;   // Fallschacht X=+22
 // Digitale Eingaenge (aktiv LOW, interne Pull-ups + extern 4k7 an 3,3 V)
 constexpr uint8_t PIN_HALL_ROT   = 13;   // A3144 Rotor-Referenz (Ladestellung)
-constexpr uint8_t PIN_HALL_FEED  = 14;   // A3144 Schlitten unten
+constexpr uint8_t PIN_HALL_FEED  = 14;   // A3144 Teller: 1 Impuls je Tasche (Magnete in der Nabe)
 constexpr uint8_t PIN_STAU       = 4;    // E18-D80NK (NPN) Band-Stau: LOW = Flasche erkannt
 constexpr uint8_t PIN_BTN_START  = 22;   // Schliesser (NO) nach GND: LOW = gedrueckt
 constexpr uint8_t PIN_BTN_STOP   = 23;   // Oeffner (NC) nach GND: HIGH = Stop gedrueckt oder Drahtbruch
@@ -37,7 +37,8 @@ constexpr uint8_t PIN_ESTOP_FB   = 5;    // Rueckmeldung Not-Halt-Kreis: LOW = K
 
 // ---------------- Mechanik --------------------------------------------
 constexpr float ROT_STEPS_PER_DEG  = 200.0f * 16.0f / 360.0f;            // direkt, 1/16
-constexpr float FEED_STEPS_PER_REV = 200.0f * 16.0f * 13.73f;            // Getriebe 13,73:1, Nockenwelle
+constexpr float FEED_STEPS_PER_REV = 200.0f * 16.0f * 13.73f;            // Getriebe 13,73:1, Tellerwelle
+constexpr uint8_t TD_POCKETS       = 10;                                  // Haken = Hall-Impulse je Umdrehung
 
 // Winkel relativ zur Ladestellung (aus CAD: ROT_DUMP_STOP / ROT_DUMP_ENTRY)
 constexpr float ANG_DUMP_STOP  = -62.0f;   // Boden am Anschlag -> Anschlagende nach unten
@@ -66,11 +67,13 @@ struct Params {
   uint16_t t_arrive   = 450;    // (Reserve) Flasche muss im Schacht erkannt werden
   uint16_t t_stau_on  = 1500;   // Band-Stau erkannt nach
   uint16_t t_stau_off = 800;
-  uint16_t t_full_on  = 900;    // Rinne voll (Lichtschranke dauernd belegt)
+  uint16_t t_full_on  = 120;    // Rinne voll (X4 liegt an der Schranke; vorbeirutschende Flasche ca. 80 ms)
   uint16_t t_full_off = 400;
-  // Hubantrieb
-  float feed_rpm      = 40;     // Nockenwelle U/min (30..60)
-  float feed_acc_rps2 = 2.0;    // Hochlauf Nockenwelle U/s^2
+  // Tellerantrieb
+  float feed_rpm      = 15;     // Teller U/min (8..20), 10 Taschen je Umdrehung
+  float feed_acc_rps2 = 1.7;    // Rampe Teller U/s^2 (Stopp aus 15 U/min in 150 ms)
+  uint16_t t_stall_pause = 1500; // Pause nach Blockade (Mitnehmer an Flasche), dann neuer Versuch
+  uint8_t  max_stall  = 3;      // Blockaden innerhalb 30 s -> Stoerung
   // Lichtschranken: Schwellwerte ADC (0..4095), belegt wenn > thr
   uint16_t thr_pres   = 2000;
   uint16_t thr_orient = 2000;

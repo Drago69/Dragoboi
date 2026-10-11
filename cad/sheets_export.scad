@@ -1,11 +1,13 @@
-// DXF-Export der Platten:  openscad -D 'SHEET="side_neg"' -o sheet_side_neg.dxf sheets_export.scad
+// DXF-Export der Platten:  openscad -D 'SHEET="rueckwand"' -o sheet_rueckwand.dxf sheets_export.scad
 include <config.scad>
 include <lib/basics.scad>
-include <parts/stair.scad>
+include <parts/gutter.scad>
+include <parts/teller.scad>
 include <sheets.scad>
-SHEET = "side_neg";
-if (SHEET == "side_neg") sheet_side2d(-1);
-if (SHEET == "side_pos") sheet_side2d(1);
-if (SHEET == "back")     sheet_back2d();
-if (SHEET == "floor")    sheet_floor2d();
-if (SHEET == "apron")    sheet_apron2d();
+SHEET = "rueckwand";
+if (SHEET == "rueckwand")    rueckwand_2d();
+if (SHEET == "haube")        haube_2d();
+if (SHEET == "bunker_boden") bunkerblech_2d(0);
+if (SHEET == "bunker_seite_unten") bunkerblech_2d(1);
+if (SHEET == "bunker_seite_oben")  bunkerblech_2d(2);
+if (SHEET == "tellerplatte") tellerplatte_2d();

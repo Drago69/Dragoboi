@@ -1,0 +1,4 @@
+build/
+*.tmp.stl
+__pycache__/
+cad/_t*.scad

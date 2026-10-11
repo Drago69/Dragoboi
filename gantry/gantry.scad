@@ -4,15 +4,18 @@
 //
 //   X: Grundprofil steht hochkant auf dem Grundbrett, GT2-Riemen
 //   Y: Ausleger, quer auf dem X-Schlitten, GT2-Riemen
-//   Z: senkrecht am Y-Schlitten, T8-Trapezgewindespindel, Vakuumgreifer
+//   Z: senkrecht am Y-Schlitten, GT2-Riemen, Vakuumgreifer
+//
+// Keine Gewindespindel: alle drei Achsen laufen mit GT2-Riemen und denselben
+// Endkappen (Motorkappe + Rollenkappe).
 //
 // Alle Maße in mm. "teil" wählen und rendern (F6 -> STL).
 // Jedes Teil liegt dabei schon in Druckrichtung auf z = 0.
 // "baugruppe" zeigt die ganze Maschine (Vorschau mit F5).
 
 /* [Ansicht / Export] */
-teil = "baugruppe"; // [baugruppe, x_aufsatz, y_aufsatz, klemme, motorkappe, rollenkappe, z_halter, z_aufsatz, z_kopf, z_fuss, greifer]
-// Schlittenposition in der Baugruppe (0 = Motorseite, 1 = Gegenseite)
+teil = "baugruppe"; // [baugruppe, x_aufsatz, y_aufsatz, z_aufsatz, klemme, motorkappe, rollenkappe, z_halter, greifer]
+// Schlittenposition in der Baugruppe (0 = Motorseite, 1 = Gegenseite; Z: 0 = oben)
 pos_x = 0.45; // [0:0.01:1]
 pos_y = 0.55; // [0:0.01:1]
 pos_z = 0.35; // [0:0.01:1]
@@ -21,12 +24,11 @@ pos_z = 0.35; // [0:0.01:1]
 laenge_x = 500;
 laenge_y = 450;   // Ausleger: über 500 mm wird es weich
 laenge_z = 250;
-// Höhe der Z-Profil-Unterkante über dem Tisch
-z_unten  = 16;
+// Höhe der Z-Profil-Unterkante über dem Tisch (die Rollenkappe ragt 30 mm darunter)
+z_unten  = 34;
 
 /* [Antrieb] */
 motor_l   = 48;   // NEMA17-Gehäuselänge (nur Darstellung)
-spindel_l = 250;  // T8-Spindel
 
 /* [Vakuumgreifer] */
 saug_d = 20;      // Saugnapf-Durchmesser (nur Darstellung)
@@ -94,7 +96,7 @@ rs_zm = 4.5;  // Zahnmitte vom nabenfernen Ende
 ur_h  = 8.5;  // Umlenkrolle GT2 20Z verzahnt, Bohrung 5
 ur_d  = 18;
 
-// ---------- Endkappen X/Y ----------
+// ---------- Endkappen (X, Y und Z gleich) ----------
 kf     = 10;                  // Flanschdicke (Senkung 5 mm)
 pf_w   = 13;                  // Anschlagpfosten bis zu dieser Höhe
 mk_up0 = -27.15;              // Motorachse: Langlöcher zum Riemenspannen
@@ -110,10 +112,7 @@ rk_wv1 = rk_wv0 + 5;
 rk_l   = rk_ui + 10;
 
 // ---------- Z ----------
-zs_v  = 44;           // Spindelachse neben dem Z-Profil
-zs_w  = -10;
-zk_t  = 10;           // Z-Kopfplatte
-za_t  = 10;           // Z-Aufsatz
+za_t  = 10;           // Z-Aufsatz in der Mitte (Klemmzungen wie X/Y)
 za_o  = pl_o + za_t;  // 14.465 Vorderseite Z-Aufsatz
 // Z-Halter (im Y-Schlittenrahmen)
 zh_v0 = pl_a/2 + 0.5; // Wand innen
@@ -124,25 +123,25 @@ zh_ft = 8;
 zh_w0 = -P_H;
 zh_w1 = ba_o + zh_ft + 45;
 
-// ---------- Vakuumgreifer (relativ zur Z-Schlittenmitte) ----------
-gr_t  = 6;
-gr_ax = za_o + gr_t + 9;  // Achse der Hülse vor dem Profil
-gr_u0 = -14;              // Unterkante Halter/Hülse
-gr_u1 = 14.5;             // Oberkante Halteplatte
-hu_u1 = 18;               // Oberkante Hülse
-rohr_u0 = -40;            // Messingrohr 6 × 1, 80 mm
-rohr_u1 = 40;
-saug_u  = -50;            // Saugnapf-Unterkante
+// ---------- Vakuumgreifer (relativ zur Z-Schlittenmitte, u nach oben) ----------
+gr_t    = 8;                         // Halteplatte
+gr_ax   = za_o + gr_t + 9;           // Achse der Hülse vor dem Profil
+gr_u0   = -30;                       // Unterkante Hülse und Steg
+gr_p0   = -14;                       // Unterkante Halteplatte, darunter 45°-Schräge
+gr_u1   = 14.5;                      // Oberkante Halteplatte
+hu_u1   = 2;                         // Oberkante Hülse
+gr_m4   = [for (u = [-10, 10], v = [-11.5, 11.5]) [u, v]];   // M4-Einsätze im Z-Aufsatz
+saug_u  = -(z_unten + ax + 1.25);    // Saugnapf 1,25 mm unter Tisch bei tiefstem Z
+rohr_u0 = saug_u + 10;               // Messingrohr 6 × 1 steckt im Saugnapfhals
+rohr_u1 = rohr_u0 + 100;
 
 // ---------- Lage der Achsen ----------
 y_hoehe = P_H + ba_o + P_H;           // Oberseite Y-Profil über Tisch
 z_zb    = z_unten - y_hoehe;          // Z-Unterkante im Y-Rahmen
 z_front = zh_v1 + P_H;                // Z-Vorderseite im Y-Rahmen
 
-// Verfahrwege (Schlittenmitte)
+// Verfahrwege (Schlittenmitte, ab Profilanfang = Motorseite)
 xy_min = ax;
-z_min  = pl_a/2;
-z_max  = min(laenge_z - pl_a/2, laenge_z - 25.5 - 7.5 - 1);   // Platte bzw. T8-Mutter unter der Kupplung
 y_soft = pl_a/2 + pl_a/2 + fuss_b + 3;   // Z-Säule frei von X-Profil und X-Kappen
 
 // ============================================================
@@ -266,8 +265,9 @@ module druckteil() { color([0.95, 0.5, 0.1]) children(); }
 
 function sechskant(sw) = sw/cos(30) + 0.3;
 
-// Aufsatz auf der X- bzw. Y-Platte: Riemenklemmen an beiden Enden.
-// typ "x": zusätzlich Wiege für den Y-Ausleger.
+// Aufsatz auf der Alu-Platte: Riemenklemmen an beiden Enden.
+// typ "x": Wiege für den Y-Ausleger, "y": Bohrung für den Z-Halter,
+// "z": in der Mitte 10 mm dick mit M4-Einsätzen für den Greifer.
 module aufsatz(typ) {
     difference() {
         union() {
@@ -279,11 +279,17 @@ module aufsatz(typ) {
                 translate([s*(ax - 1.5 - i*2) - 0.45, -riemen_b/2 - 1, ba_o - eps]) cube([0.9, riemen_b + 2, 0.6]);
             if (typ == "x")                                          // Wiege, greift in die untere Seitennut
                 for (s = [-1, 1]) translate([s > 0 ? 10 : -16, -14, ba_o - eps]) cube([6, 28, 18]);
+            if (typ == "z")
+                translate([0, 0, ba_o - eps]) linear_extrude(za_o - ba_o + eps)
+                    offset(r = 3) offset(delta = -3) square(pl_a, center = true);
         }
         for (u = [-rad_u, rad_u]) {                                  // Radschrauben
             translate([u, -rad_v, 0]) cylinder(d = exz_d, h = 50);
             translate([u,  rad_v, 0]) cylinder(d = m5, h = 50);
+            if (typ == "z") for (v = [-rad_v, rad_v])                 // Muttern versenkt
+                translate([u, v, za_o - 6]) cylinder(d = 10.5, h = 7);
         }
+        if (typ == "z") for (m = gr_m4) translate([m[0], m[1], za_o - 8]) cylinder(d = einsatz, h = 9);
         if (typ == "x")                                              // Y-Profil von unten (Hammermutter)
             for (v = [-rad_v, rad_v]) translate([0, v, 0]) cylinder(d = v < 0 ? exz_d : m5, h = 50);
         if (typ == "y") translate([0, rad_v, 0]) cylinder(d = m5, h = 50);   // Z-Halter
@@ -373,78 +379,25 @@ module z_halter() {
     }
 }
 
-// Z-Aufsatz (Z-Schlittenrahmen): Lasche für die T8-Mutter, Einsätze für den Greifer
-module z_aufsatz() {
-    difference() {
-        union() {
-            translate([0, 0, pl_o]) linear_extrude(za_t) offset(r = 3) offset(delta = -3)
-                translate([-pl_a/2, -pl_a/2]) square([pl_a, pl_a/2 + 40]);
-            translate([-4, 33, -23]) cube([8, zs_v + 14 - 33, za_o + 23]);
-            hull() {
-                translate([-4 - eps, 33, -23]) cube([eps, 4, pl_o + 23 + 1]);
-                translate([-16, 33, pl_o]) cube([eps, 4, 1]);
-            }
-        }
-        for (u = [-rad_u, rad_u], v = [-rad_v, rad_v]) translate([u, v, 0]) {
-            cylinder(d = v < 0 ? exz_d : m5, h = 50);
-            translate([0, 0, za_o - 6]) cylinder(d = 10.5, h = 7);
-        }
-        translate([-10, zs_v, zs_w]) rotate([0, 90, 0]) cylinder(d = 10.5, h = 20);
-        for (a = [45 : 90 : 315])
-            translate([-10, zs_v + 8*cos(a), zs_w + 8*sin(a)]) rotate([0, 90, 0]) cylinder(d = m3, h = 20);
-        for (u = [-10, 10], v = [-15, 15]) translate([u, v, za_o - 8]) cylinder(d = einsatz, h = 9);
-    }
-}
-
-// Z-Kopf: Deckel oben, trägt den Motor neben dem Profil
-module z_kopf() {
-    difference() {
-        union() {
-            hull() {
-                translate([0, -P_B/2, -P_H]) cube([zk_t, P_B, P_H]);
-                translate([0, zs_v - 21.15, zs_w - 21.15]) cube([zk_t, 42.3, 42.3]);
-            }
-            translate([-25, P_B/2 - eps, -P_H]) cube([25 + zk_t, 5, 21]);   // Schürze, hintere Seitennut
-        }
-        flanschbohrungen(1);
-        translate([-12, P_B/2 - 1, -30]) rotate([-90, 0, 0]) cylinder(d = m5, h = 7);
-        translate([-1, zs_v, zs_w]) rotate([0, 90, 0]) cylinder(d = 24, h = zk_t + 2);
-        for (a = [-1, 1], b = [-1, 1])
-            translate([-1, zs_v + a*15.5, zs_w + b*15.5]) rotate([0, 90, 0]) {
-                cylinder(d = m3, h = zk_t + 2);
-                cylinder(d = 6.5, h = 1 + 4);
-            }
-    }
-}
-
-// Z-Fuß: Deckel unten, zugleich unterer Anschlag
-module z_fuss() {
-    difference() {
-        translate([-8, -P_B/2 - 2, -P_H]) cube([8, P_B + 4, P_H + za_o + 0.5]);
-        for (w = [-10, -30])
-            translate([0, 0, w]) rotate([0, -90, 0]) {
-                translate([0, 0, -1]) cylinder(d = m5, h = 10);
-                translate([0, 0, 3]) cylinder(d = m5_kopf, h = 10);
-            }
-    }
-}
-
 // Vakuumgreifer: Halter mit Führungshülse für ein Messingrohr 6 × 1 mm.
 // Das Rohr ist zugleich Luftkanal; eine Feder drückt es nach unten (Höhenausgleich).
 module greifer() {
     difference() {
         union() {
-            translate([gr_u0, -21, za_o]) cube([gr_u1 - gr_u0, 42, gr_t]);
-            translate([gr_u0, -5, za_o + gr_t - eps]) cube([hu_u1 - gr_u0, 10, gr_ax - za_o - gr_t + eps]);
-            translate([gr_u0, 0, gr_ax]) rotate([0, 90, 0]) cylinder(d = 16, h = hu_u1 - gr_u0);
+            hull() {                                                   // Halteplatte, unten 45° schräg
+                translate([gr_p0, -15.5, za_o]) cube([gr_u1 - gr_p0, 31, gr_t]);
+                translate([gr_p0 - 10.5, -5, za_o]) cube([eps, 10, gr_t]);
+            }
+            translate([gr_u0, -5, za_o]) cube([hu_u1 - gr_u0, 10, gr_ax - za_o]);              // Steg
+            translate([gr_u0, 0, gr_ax]) rotate([0, 90, 0]) cylinder(d = 16, h = hu_u1 - gr_u0);  // Hülse
         }
         translate([gr_u0 - 1, 0, gr_ax]) rotate([0, 90, 0]) {
-            cylinder(d = 6.3, h = 50);                                  // Führung oben und unten
+            cylinder(d = 6.3, h = 60);                                  // Führung oben und unten
             translate([0, 0, 1 + 8]) cylinder(d = 7, h = hu_u1 - gr_u0 - 16);
         }
-        for (u = [-10, 10], v = [-15, 15]) translate([u, v, za_o - 1]) {
+        for (m = gr_m4) translate([m[0], m[1], za_o - 1]) {
             cylinder(d = 4.4, h = gr_t + 2);
-            translate([0, 0, gr_t + 1 - 3]) cylinder(d = 7.5, h = 10);
+            translate([0, 0, 1 + gr_t - 4.5]) cylinder(d = 7.5, h = 4.5 + eps);
         }
     }
 }
@@ -457,11 +410,11 @@ module greifer_zukauf() {   // Rohr, Stellringe, Feder, Saugnapf
         }
         color([0.6, 0.6, 0.62]) {
             translate([0, 0, hu_u1]) cylinder(d = 12, h = 6);              // Stellring oben
-            translate([0, 0, -34]) cylinder(d = 12, h = 6);                // Stellring unten
+            translate([0, 0, gr_u0 - 20]) cylinder(d = 12, h = 6);         // Stellring unten
         }
-        color([0.5, 0.5, 0.55]) translate([0, 0, -28]) difference() {    // Feder
-            cylinder(d = 9, h = gr_u0 + 28);
-            translate([0, 0, -1]) cylinder(d = 7.4, h = gr_u0 + 30);
+        color([0.5, 0.5, 0.55]) translate([0, 0, gr_u0 - 14]) difference() {   // Feder
+            cylinder(d = 9, h = 14);
+            translate([0, 0, -1]) cylinder(d = 7.4, h = 16);
         }
         color([0.3, 0.45, 0.8]) {                                         // Saugnapf
             translate([0, 0, saug_u + 8]) cylinder(d = 10, h = 8);
@@ -487,45 +440,29 @@ module riemenachse(L, c, typ) {
         alu_platte();
         druckteil() aufsatz(typ);
         for (s = [-1, 1]) druckteil() translate([s*kl_u, 0, ba_o + 1.3]) klemme();
-        raeder(ba_o, typ == "y" ? ba_o + zh_ft : ba_o);
+        if (typ == "z") raeder(za_o - 6, za_o - 6);
+        else raeder(ba_o, typ == "y" ? ba_o + zh_ft : ba_o);
         children();
     }
 }
 
-module z_achse(c) {
-    profil(laenge_z);
-    druckteil() z_fuss();
-    druckteil() translate([laenge_z, 0, 0]) z_kopf();
-    translate([laenge_z + zk_t, zs_v, zs_w]) rotate([0, 90, 0]) nema17();
-    translate([0, zs_v, zs_w]) rotate([0, 90, 0]) {
-        color([0.7, 0.7, 0.72]) translate([0, 0, laenge_z - 25.5]) cylinder(d = 20, h = 25);  // Kupplung
-        color([0.55, 0.55, 0.58]) translate([0, 0, laenge_z - 14 - spindel_l]) cylinder(d = 8, h = spindel_l);
-    }
-    translate([c, 0, 0]) {
-        alu_platte();
-        druckteil() z_aufsatz();
-        raeder(za_o - 6, za_o - 6);
-        translate([4, zs_v, zs_w]) rotate([0, 90, 0]) color([0.8, 0.65, 0.2]) {   // T8-Mutter
-            cylinder(d = 22, h = 3.5);
-            translate([0, 0, 3.5 - 15]) cylinder(d = 10.2, h = 15);
-        }
-        druckteil() greifer();
-        greifer_zukauf();
-    }
-}
-
-ZM = [[0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 0, 1]];   // Z-Rahmen -> Y-Rahmen
+// Z-Rahmen (u nach unten, Motor oben) -> Y-Schlittenrahmen
+ZM = [[0, -1, 0, 0], [0, 0, 1, 0], [-1, 0, 0, 0], [0, 0, 0, 1]];
 
 module baugruppe() {
     cx = xy_min + pos_x * (laenge_x - 2*xy_min);
     cy = y_soft + pos_y * (laenge_y - xy_min - y_soft);
-    cz = z_min + pos_z * (z_max - z_min);
+    cz = xy_min + pos_z * (laenge_z - 2*xy_min);
     translate([0, 0, P_H])
     riemenachse(laenge_x, cx, "x")
         translate([0, -pl_a/2, ba_o + P_H]) rotate([0, 0, 90])
         riemenachse(laenge_y, cy, "y") {
             druckteil() z_halter();
-            translate([0, z_front, z_zb]) multmatrix(ZM) z_achse(cz);
+            translate([0, z_front, z_zb + laenge_z]) multmatrix(ZM)
+                riemenachse(laenge_z, cz, "z") rotate([0, 0, 180]) {   // Greifer: u zeigt hier nach oben
+                    druckteil() greifer();
+                    greifer_zukauf();
+                }
         }
 }
 
@@ -536,13 +473,11 @@ module baugruppe() {
 if (teil == "baugruppe")   baugruppe();
 if (teil == "x_aufsatz")   translate([0, 0, -pl_o]) aufsatz("x");
 if (teil == "y_aufsatz")   translate([0, 0, -pl_o]) aufsatz("y");
+if (teil == "z_aufsatz")   translate([0, 0, -pl_o]) aufsatz("z");
 if (teil == "klemme")      klemme();
 if (teil == "motorkappe")  translate([0, 0, P_H]) motorkappe();
 if (teil == "rollenkappe") translate([0, 0, P_H]) rollenkappe();
 if (teil == "z_halter")    translate([0, 0, zh_b]) rotate([0, -90, 0]) z_halter();
-if (teil == "z_aufsatz")   translate([0, 0, za_o]) rotate([180, 0, 0]) z_aufsatz();
-if (teil == "z_kopf")      translate([0, 0, zk_t]) rotate([0, 90, 0]) z_kopf();
-if (teil == "z_fuss")      translate([0, 0, 8]) rotate([0, -90, 0]) z_fuss();
 if (teil == "greifer")     translate([0, 0, -gr_u0]) rotate([0, -90, 0]) greifer();
 
 // ---------- Kennwerte ----------
@@ -550,8 +485,10 @@ function riemen_l(L) = 2*L + 2*rk_ui - 2*mk_up + 2*PI*teil_r - 2*(pl_a/2 + 1);
 werkzeug = z_front + gr_ax;
 echo(str("Verfahrweg X = ", laenge_x - 2*xy_min, " mm"));
 echo(str("Verfahrweg Y = ", laenge_y - xy_min - y_soft, " mm (Y-Schlittenmitte nicht unter ", y_soft, " mm ab Profilanfang)"));
-echo(str("Verfahrweg Z = ", z_max - z_min, " mm"));
-echo(str("GT2-Riemen X ≈ ", round(riemen_l(laenge_x)), " mm, Y ≈ ", round(riemen_l(laenge_y)), " mm"));
+echo(str("Verfahrweg Z = ", laenge_z - 2*xy_min, " mm"));
+echo(str("GT2-Riemen X ≈ ", round(riemen_l(laenge_x)), " mm, Y ≈ ", round(riemen_l(laenge_y)),
+         " mm, Z ≈ ", round(riemen_l(laenge_z)), " mm"));
 echo(str("Saugnapf: ", werkzeug, " mm neben der X-Schlittenmitte (in -X), Unterkante bei tiefstem Z: ",
-         z_unten + z_min + saug_u, " mm (negativ = Feder federt auf dem Tisch ein)"));
-if (z_unten + laenge_z - 14 - spindel_l < 0) echo("WARNUNG: Spindel ragt unter die Tischfläche, z_unten erhöhen oder Spindel kürzen");
+         z_unten + ax + saug_u, " mm (negativ = Feder federt auf dem Tisch ein), Messingrohr ",
+         rohr_u1 - rohr_u0, " mm"));
+if (z_unten - rk_l < 0) echo("WARNUNG: Z-Rollenkappe ragt unter die Tischfläche, z_unten erhöhen");

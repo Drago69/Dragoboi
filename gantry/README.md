@@ -1,8 +1,8 @@
 # Einfaches 3-Achs-Gantry mit Vakuumgreifer
 
 Kartesische Maschine in Auslegerbauweise. Jede Achse besteht aus einem
-V-Slot-Profil 2040, einer Alu-Schlittenplatte 65,5 × 65,5 mm mit vier V-Rädern
-und einem NEMA17-Motor. Am Z-Schlitten sitzt ein federnder Vakuumgreifer.
+V-Slot-Profil 2040, einer Alu-Schlittenplatte 65,5 × 65,5 mm mit vier V-Rädern,
+einem NEMA17-Motor und einem GT2-Riemen. Es gibt keine Gewindespindel. Am Z-Schlitten sitzt ein federnder Vakuumgreifer.
 Gedacht für Pick & Place, Sortieren und Umsetzen kleiner Teile. Mit anderem
 Werkzeug geht auch Plotten oder Lasern.
 
@@ -20,17 +20,16 @@ Seiten.
 |---|---|---|---|
 | X | 2040 × 500 mm | steht hochkant auf dem Grundbrett | GT2-Riemen 6 mm |
 | Y | 2040 × 450 mm | Ausleger, hochkant quer auf dem X-Schlitten | GT2-Riemen 6 mm |
-| Z | 2040 × 250 mm | senkrecht am Y-Schlitten (Z-Halter) | T8-Trapezspindel, Motor oben |
+| Z | 2040 × 250 mm | senkrecht am Y-Schlitten (Z-Halter) | GT2-Riemen 6 mm, Motor oben |
 
 - Auf jede Alu-Platte kommt ein gedruckter **Aufsatz**. Er wird mit den
   Radschrauben festgeklemmt und trägt die Riemenklemmen, beim X-Schlitten
-  zusätzlich die Wiege für den Y-Ausleger und beim Z-Schlitten die Spindelmutter
-  und den Greifer.
-- X und Y sind gleich gebaut. Der Riemen läuft als senkrechte Schlaufe: Das
-  untere Trum liegt in der oberen Profilnut unter dem Schlitten, das obere Trum
-  läuft über der Platte und ist an beiden Enden des Aufsatzes geklemmt. Gespannt
-  wird über Langlöcher in der Motorkappe.
-- Z läuft mit Spindel, damit der Schlitten stromlos nicht herunterfällt.
+  zusätzlich die Wiege für den Y-Ausleger und beim Z-Schlitten den Greifer.
+- Alle drei Achsen sind gleich angetrieben, mit denselben Endkappen. Der Riemen
+  läuft als Schlaufe: Ein Trum liegt in der Profilnut unter dem Schlitten, das
+  andere läuft über der Platte und ist an beiden Enden des Aufsatzes geklemmt.
+  Gespannt wird über Langlöcher in der Motorkappe. Bei Z sitzt die Motorkappe
+  oben und die Rollenkappe unten.
 
 ![X-Schlitten mit Alu-Platte, Aufsatz, Riemenklemme und Wiege](bilder/x_schlitten.png)
 
@@ -40,8 +39,8 @@ Seiten.
 |---|---|
 | Verfahrweg X | 406 mm |
 | Verfahrweg Y | 310 mm (siehe [Grenzen](#grenzen-und-softlimits)) |
-| Verfahrweg Z | 183 mm |
-| Saugnapf | 111 mm neben der X-Schlittenmitte (in −X) |
+| Verfahrweg Z | 156 mm |
+| Saugnapf | 113 mm neben der X-Schlittenmitte (in −X) |
 | Saugnapf bei tiefstem Z | 1,3 mm unter der Tischfläche, die Feder gleicht das aus |
 
 OpenSCAD gibt diese Werte beim Rendern als `ECHO` aus. Sie passen sich an,
@@ -98,14 +97,15 @@ G0 Z20
 |---|---|---|
 | `x_aufsatz` | 1 | auf der X-Platte: 2 Riemenklemmen, Wiege für den Y-Ausleger |
 | `y_aufsatz` | 1 | auf der Y-Platte: 2 Riemenklemmen, Bohrung für den Z-Halter |
-| `klemme` | 4 | Deckel der Riemenklemmen |
-| `motorkappe` | 2 | X und Y: Profilanfang, Motor liegend mit Langlöchern zum Spannen, Fuß |
-| `rollenkappe` | 2 | X und Y: Profilende, Umlenkrolle zwischen zwei Wangen, Fuß |
+| `z_aufsatz` | 1 | auf der Z-Platte: 2 Riemenklemmen, 4 Gewindeeinsätze für den Greifer |
+| `klemme` | 6 | Deckel der Riemenklemmen |
+| `motorkappe` | 3 | Profilanfang (bei Z oben), Motor liegend mit Langlöchern zum Spannen |
+| `rollenkappe` | 3 | Profilende (bei Z unten), Umlenkrolle zwischen zwei Wangen |
 | `z_halter` | 1 | Winkel auf dem Y-Aufsatz, hält das Z-Profil an der Rückseite (mit Nutfeder) |
-| `z_aufsatz` | 1 | auf der Z-Platte: Lasche für die T8-Mutter, 4 Gewindeeinsätze für den Greifer |
-| `z_kopf` | 1 | oberer Z-Deckel mit Motorplatte |
-| `z_fuss` | 1 | unterer Z-Deckel und Anschlag |
 | `greifer` | 1 | Halter mit Führungshülse für das Saugrohr |
+
+Die Füße an Motor- und Rollenkappe braucht nur die X-Achse zum Festschrauben,
+bei Y und Z stören sie nicht.
 
 Druckempfehlung: PETG oder ASA, 0,2 mm Schicht, 4 Wände, 40 % Infill (Gyroid),
 Aufsätze mit 60 % Infill. Die STLs liegen schon richtig herum, Stützen sind
@@ -122,15 +122,12 @@ Führungsbohrung rund wird. Falls das Rohr klemmt, die Bohrung mit einem
 - 12 × V-Rad (Solid V-Wheel, Delrin) mit 2 × 625ZZ
 - 6 × Distanzhülse 6,35 mm, 6 × Exzenterbuchse 6,35 mm (gehören oft zum Plattensatz)
 - 3 × NEMA17 (z. B. 17HS4401, Welle 5 mm, mind. 20 mm lang)
-- 2 × GT2-Zahnscheibe 20 Zähne, Bohrung 5 mm, für 6-mm-Riemen
-- 2 × GT2-Umlenkrolle 20 Zähne verzahnt, Bohrung 5 mm (Ø 18 mm, ca. 8,5 mm breit)
-- GT2-Riemen 6 mm, 2,5 m (X ≈ 1060 mm, Y ≈ 960 mm)
-- T8-Trapezgewindespindel 250 mm mit Flanschmutter, Steigung 2 mm (selbsthemmend)
-  oder 8 mm (schneller)
-- Wellenkupplung 5 → 8 mm (Ø 20 × 25 mm)
+- 3 × GT2-Zahnscheibe 20 Zähne, Bohrung 5 mm, für 6-mm-Riemen
+- 3 × GT2-Umlenkrolle 20 Zähne verzahnt, Bohrung 5 mm (Ø 18 mm, ca. 8,5 mm breit)
+- GT2-Riemen 6 mm, 3 m (X ≈ 1060 mm, Y ≈ 960 mm, Z ≈ 560 mm)
 
 **Vakuumgreifer**
-- Messingrohr 6 × 1 mm, 80 mm lang
+- Messingrohr 6 × 1 mm, 100 mm lang
 - 2 × Stellring 6 mm (DIN 705)
 - Druckfeder Innen-Ø ≥ 6,5 mm, Außen-Ø ≤ 10 mm, ca. 20 mm lang (z. B. 0,6 × 9 × 20)
 - Silikon-Saugnapf Ø 15–20 mm mit Anschluss für 6-mm-Rohr bzw. -Schlauch
@@ -141,15 +138,13 @@ Führungsbohrung rund wird. Falls das Rohr klemmt, die Bohrung mit einem
 - Räder: 10 × M5×30 und 2 × M5×40 Linsenkopf (ISO 7380), je mit Scheibe und
   Stoppmutter. Die beiden M5×40 sitzen am Y-Schlitten auf der Z-Seite und
   klemmen den Z-Halter mit.
-- Profilenden: 10 × M5×16 Zylinderkopf, 2 × M5×12 (Z-Fuß)
+- Profilenden: 12 × M5×16 Zylinderkopf
 - Y-Ausleger: 2 × M5×12 von unten durch Platte und X-Aufsatz, 4 × M5×10 durch
   die Wiege, dazu 6 × Hammermutter M5 (V-Slot/Nut 6)
 - Z-Halter: 1 × M5×20 + Mutter (Flansch), 4 × M5×14 + 4 × Hammermutter (Wand)
-- Z-Kopf-Schürze: 1 × M5×10 + Hammermutter
-- Umlenkrollen: 2 × M5×25 + Mutter + 4 × Scheibe
+- Umlenkrollen: 3 × M5×25 + Mutter + 6 × Scheibe
 - Motoren: 12 × M3×10 mit Scheibe
-- Riemenklemmen: 8 × M3×12 + 8 × Mutter M3
-- T8-Mutter: 4 × M3×16 + 4 × Mutter M3
+- Riemenklemmen: 12 × M3×12 + 12 × Mutter M3
 - Greifer: 4 × M4×10 + 4 × Gewindeeinsatz M4 (Bohrung 5,6 mm, im Z-Aufsatz)
 - Grundbrett: 4 × Holzschraube 4 mm durch die Füße der X-Kappen, dazu 2 × M5 +
   Hammermutter in die untere Nut des X-Profils
@@ -158,7 +153,9 @@ Führungsbohrung rund wird. Falls das Rohr klemmt, die Bohrung mit einem
 - Arduino Uno + CNC-Shield mit GRBL oder ein Board mit FluidNC
 - 3 × Treiber TMC2209 oder A4988, Netzteil 12 V (Pumpe und Ventil laufen mit)
 - 3 × Endschalter
-- Schritte/mm bei 1/16-Mikroschritt: X und Y = 80, Z = 1600 (T8×2) bzw. 400 (T8×8)
+- Schritte/mm bei 1/16-Mikroschritt: X, Y und Z = 80
+- In GRBL `$1=255` setzen, damit die Motoren dauerhaft bestromt bleiben und Z
+  im Stillstand hält (siehe [Grenzen](#grenzen-und-softlimits))
 
 ## Montage
 
@@ -190,19 +187,18 @@ Führungsbohrung rund wird. Falls das Rohr klemmt, die Bohrung mit einem
    Enden des Aufsatzes legen, Zähne nach unten auf die Rippen. Klemmdeckel mit
    2 × M3×12 festziehen. Zum Spannen die vier Motorschrauben lösen, den Motor in
    den Langlöchern nach außen ziehen (bis 6 mm) und wieder festziehen.
-7. **Z-Achse.** Vier Hammermuttern in die hintere Nut des Z-Profils und eine in
-   die hintere Seitennut für die Schürze des Z-Kopfs schieben. Z-Schlitten
-   aufschieben und einstellen, Z-Fuß anschrauben. Z-Kopf mit Motor, Kupplung und
-   Spindel montieren, die T8-Mutter mit 4 × M3×16 auf die Lasche schrauben. Das
-   Z-Profil mit der Nutfeder in die Wand des Z-Halters setzen und mit 4 × M5×14
-   verschrauben. Den Z-Halter auf den Y-Aufsatz setzen: Die beiden Radschrauben
+7. **Z-Achse.** Wie X und Y aufbauen: Schlitten aufschieben, Motorkappe oben,
+   Rollenkappe unten, Riemen einlegen und spannen. Vorher vier Hammermuttern in
+   die hintere Nut des Z-Profils schieben. Das Z-Profil mit der Nutfeder in die
+   Wand des Z-Halters setzen und mit 4 × M5×14 verschrauben. Den Z-Halter auf den Y-Aufsatz setzen: Die beiden Radschrauben
    der Z-Seite (M5×40) gehen durch den Flansch, dazu 1 × M5×20 in der Mitte mit
    der Mutter unter der Alu-Platte.
 8. **Greifer.** Vier M4-Gewindeeinsätze in den Z-Aufsatz einschmelzen. Messingrohr
    durch die Hülse stecken: oben Stellring, unten Feder und zweiter Stellring,
    dann den Saugnapf. Den unteren Stellring so setzen, dass die Feder leicht
    vorgespannt ist. Halter mit 4 × M4×10 anschrauben und den Schlauch oben aufs
-   Rohr schieben.
+   Rohr schieben. Den Greifer erst nach dem Z-Riemen montieren, sonst kommt man
+   an die untere Klemme schlecht heran.
 9. **Grundbrett.** Das X-Profil steht hochkant. Die Füße der beiden X-Kappen mit
    Holzschrauben festschrauben und das Profil zusätzlich über die untere Nut mit
    M5 + Hammermutter von unten durch das Brett halten.
@@ -215,13 +211,20 @@ Führungsbohrung rund wird. Falls das Rohr klemmt, die Bohrung mit einem
   daher auf 93,5…403 mm begrenzen und Y zur Rollenkappe hin referenzieren.
   Innerhalb dieses Bereichs ist die Baugruppe in allen Endlagen von X, Y und Z
   auf Überschneidungen geprüft.
-- **Arbeitsbereich liegt versetzt.** Der Saugnapf sitzt 111 mm neben der
-  X-Schlittenmitte. Bei X ganz am Anfang steht er also 64 mm vor dem X-Profilanfang.
+- **Z ohne Strom.** Ohne Spindel hält Z nur, solange der Motor bestromt ist.
+  Der Z-Schlitten wiegt mit Greifer etwa 250 g. Fällt der Strom weg, rutscht er
+  nach unten, bis der gefederte Saugnapf aufsetzt. Das ist harmlos, nach dem
+  Wiedereinschalten aber Z neu referenzieren.
+- **Arbeitsbereich liegt versetzt.** Der Saugnapf sitzt 113 mm neben der
+  X-Schlittenmitte. Bei X ganz am Anfang steht er also 66 mm vor dem X-Profilanfang.
   Das Grundbrett muss entsprechend groß sein.
 - **Ausleger.** Der Y-Ausleger hängt einseitig an einer 65-mm-Platte. Das
   Profil steht hochkant und ist steif, das Spiel kommt von den Rädern. Exzenter
   sauber einstellen. Für Pick & Place reicht das gut, zum Fräsen nicht.
 - **Profilsorte.** Die Räder brauchen **V-Slot**-Profil. Normales B-Typ-Profil
   (Nut 6, gerade Flanken) geht mit V-Rädern nicht.
-- **Riemen in der Nut.** Das untere Trum liegt lose in der oberen Profilnut. Die
-  Nut muss an den Profilenden frei sein, also dort keine Hammermuttern.
+- **Riemen in der Nut.** Ein Trum liegt lose in der Profilnut auf der
+  Plattenseite. Die Nut muss an den Profilenden frei sein, also dort keine
+  Hammermuttern.
+- **Gewinde.** Die Profilenden brauchen trotzdem M5-Gewinde in den Kernlöchern
+  für die Endkappen. Das sind nur Befestigungen, keine Antriebe.

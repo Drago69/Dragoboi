@@ -6,12 +6,12 @@ Schrägblattrührer mit 4 Flügeln (45° angestellt), Ø 60 mm, Nabe Ø 20 × 22
 - `ruehrwerk.stl`: fertig gerendert mit den Standardwerten
 
 ## Befestigung auf der Welle: geklebt
-- Bohrung 8,2 mm, also 0,1 mm Klebespalt je Seite. Geht die Welle zu stramm
-  oder zu locker rein, `bohrung_spiel` anpassen.
+- Bohrung rund, exakt 8,0 mm. Für mehr Klebespalt `bohrung_spiel = 0.2`
+  setzen (0,1 mm je Seite).
 - Glatte Bohrung ohne Nuten. Mit `kleberillen = 3` lassen sich Ringnuten als
   Kleberreservoir zuschalten.
-- D-Abflachung 0,5 mm überträgt das Drehmoment formschlüssig. Bei runder
-  Welle `d_flat = false` setzen und die Welle stattdessen anrauen oder rändeln.
+- Keine D-Abflachung. Für eine D-Welle `d_flat = true` setzen; dann wird
+  das Drehmoment formschlüssig übertragen.
 - Die M4-Madenschraube ist abgeschaltet. Mit `madenschraube = true` gibt es
   sie als zusätzliche Sicherung.
 

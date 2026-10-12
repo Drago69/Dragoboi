@@ -9,7 +9,7 @@ bohrung_spiel  = 0.2;   // Klebespalt (Durchmesser): 0.2 = 0.1 mm Spalt je Seite
 d_flat         = true;  // Abflachung in der Bohrung (für Welle mit D-Profil, Formschluss)
 d_flat_tiefe   = 0.5;   // Tiefe der Abflachung (Standard D-Welle 8 mm: 0.5)
 madenschraube  = false; // Querbohrung + Mutternfalle für M4 Madenschraube (optional zusätzlich)
-kleberillen    = 3;     // Ringnuten in der Bohrung als Kleberreservoir (0 = aus)
+kleberillen    = 0;     // Ringnuten in der Bohrung als Kleberreservoir (0 = aus)
 rillen_tiefe   = 0.4;   // radiale Tiefe der Ringnuten
 rillen_breite  = 1.5;
 

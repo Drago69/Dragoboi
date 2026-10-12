@@ -8,8 +8,8 @@ Schrägblattrührer mit 4 Flügeln (45° angestellt), Ø 60 mm, Nabe Ø 20 × 22
 ## Befestigung auf der Welle: geklebt
 - Bohrung 8,2 mm, also 0,1 mm Klebespalt je Seite. Geht die Welle zu stramm
   oder zu locker rein, `bohrung_spiel` anpassen.
-- 3 Ringnuten in der Bohrung nehmen Kleber auf. Das ergibt eine
-  formschlüssige Kleberraupe, die auch hält, wenn die Haftung nachlässt.
+- Glatte Bohrung ohne Nuten. Mit `kleberillen = 3` lassen sich Ringnuten als
+  Kleberreservoir zuschalten.
 - D-Abflachung 0,5 mm überträgt das Drehmoment formschlüssig. Bei runder
   Welle `d_flat = false` setzen und die Welle stattdessen anrauen oder rändeln.
 - Die M4-Madenschraube ist abgeschaltet. Mit `madenschraube = true` gibt es
@@ -25,7 +25,7 @@ Schrägblattrührer mit 4 Flügeln (45° angestellt), Ø 60 mm, Nabe Ø 20 × 22
 - Vorbereitung: Welle anrauen (Schleifpapier 120) und mit Isopropanol
   entfetten. Bohrung ebenfalls entfetten.
 - Kleber in die Bohrung und auf die Welle geben und das Rührwerk mit leichter
-  Drehung aufschieben. Ausgetretenen Kleber abwischen und voll aushärten
+  Drehung aufschieben, damit sich der Kleber gleichmäßig verteilt. Ausgetretenen Kleber abwischen und voll aushärten
   lassen, bevor es in heißes Wasser geht.
 
 ## Druckempfehlung (TPU 95A)
